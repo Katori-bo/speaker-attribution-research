@@ -1,0 +1,24 @@
+# Environments
+.venv/
+.env
+__pycache__/
+*.py[cod]
+*$py.class
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Data & Logs
+data/raw/
+data/processed/
+logs/
+experiments/**/predictions.csv
+
+# Jupyter
+.ipynb_checkpoints/
+
+# System
+.DS_Store

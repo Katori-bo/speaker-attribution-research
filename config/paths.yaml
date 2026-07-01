@@ -1,0 +1,8 @@
+# Data Paths
+raw_data: "data/raw/pdnc/"
+splits: "data/splits/"
+
+# Output Paths
+experiments: "experiments/"
+logs: "logs/"
+reports: "reports/"
