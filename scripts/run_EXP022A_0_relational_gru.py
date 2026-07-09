@@ -121,8 +121,8 @@ def main():
     test_seq = TensorSequenceDataset(test_df, state_free_cols, feature_mode='all', vocab=vocab, scaler=scaler)
     
     for f in mutable_discourse_features:
-        assert f not in train_seq.feature_cols
-        assert f not in test_seq.feature_cols
+        assert f not in train_seq.active_features
+        assert f not in test_seq.active_features
     logger.info("Feature leakage assertion passed. No mutable discourse features present.")
     
     # Custom collate function to avoid standard tensor stacking since batch items are objects
