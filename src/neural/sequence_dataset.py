@@ -63,6 +63,8 @@ class TensorSequenceDataset(Dataset):
         return self.vocab.get(char_str, self.vocab.get("<UNK>", 1))
         
     def _build_sequences(self, df: pd.DataFrame, scaler=None):
+        global_max_candidates = df.groupby('quote_id').size().max()
+        
         for novel_id, novel_df in df.groupby('novel'):
             def get_quote_idx(q_id):
                 try: return int(str(q_id).split('_')[-1])
@@ -71,19 +73,12 @@ class TensorSequenceDataset(Dataset):
             unique_quote_ids = sorted(novel_df['quote_id'].unique(), key=get_quote_idx)
             num_quotes = len(unique_quote_ids)
             
-            # Find max candidates for padding
-            max_candidates = 0
-            for quote_id in unique_quote_ids:
-                q_len = len(novel_df[novel_df['quote_id'] == quote_id])
-                if q_len > max_candidates:
-                    max_candidates = q_len
-                    
-            if max_candidates == 0:
+            if global_max_candidates == 0:
                 continue
                 
-            candidate_features = torch.zeros(num_quotes, max_candidates, len(self.active_features), dtype=torch.float32)
-            candidate_mask = torch.zeros(num_quotes, max_candidates, dtype=torch.bool)
-            candidate_ids = torch.zeros(num_quotes, max_candidates, dtype=torch.long)
+            candidate_features = torch.zeros(num_quotes, global_max_candidates, len(self.active_features), dtype=torch.float32)
+            candidate_mask = torch.zeros(num_quotes, global_max_candidates, dtype=torch.bool)
+            candidate_ids = torch.zeros(num_quotes, global_max_candidates, dtype=torch.long)
             gold_index = torch.zeros(num_quotes, dtype=torch.long)
             gold_speaker_id = torch.zeros(num_quotes, dtype=torch.long)
             
