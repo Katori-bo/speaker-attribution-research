@@ -219,33 +219,29 @@ def main():
     results = []
     with torch.no_grad():
         for batch in test_loader:
-            features = batch['features'].to(device)
-            mask = batch['mask'].to(device)
-            gold_index = batch['gold_index'].to(device)
-            q_ids = batch['quote_id']
+            scores = model(batch['features'].to(device), batch['mask'].to(device))
             
-            scores = model(features, mask)
-            
-            # Compute loss per item
             loss_fn = nn.CrossEntropyLoss(reduction='none')
-            losses = loss_fn(scores, gold_index).cpu().numpy()
+            losses = loss_fn(scores, batch['gold_index'].to(device)).cpu().numpy()
             
             sorted_indices = torch.argsort(scores, dim=-1, descending=True)
-            
-            for i in range(len(q_ids)):
-                gold = gold_index[i].item()
+            for i in range(len(batch['quote_id'])):
+                gold = batch['gold_index'][i].item()
                 ranks = (sorted_indices[i] == gold).nonzero(as_tuple=True)[0]
                 rank = ranks[0].item() + 1 if len(ranks) > 0 else 999
                 
                 results.append({
-                    'quote_id': q_ids[i],
-                    'quote_type': type_mappings.get(q_ids[i], 'Unknown'),
+                    'quote_id': batch['quote_id'][i],
+                    'quote_type': type_mappings.get(batch['quote_id'][i], 'Unknown'),
                     'pred_rank': rank,
                     'loss': losses[i]
                 })
                 
-    mlp_preds = pd.DataFrame(results)
-    mlp_metrics = compute_metrics(mlp_preds)
+    preds_df = pd.DataFrame(results)
+    preds_df.to_csv("results/EXP021A_2/predictions.csv", index=False)
+    logger.info("Predictions saved to results/EXP021A_2/predictions.csv")
+    
+    metrics = compute_metrics(preds_df)
     
     logger.info("Generating HistGBM AR baseline for McNemar test...")
     hist_model, _ = train_exp014_model(df)

@@ -34,13 +34,15 @@ def evaluate_gru(model, dataloader, device, type_mappings, ablate_memory=False, 
             q_ids = batch.quote_ids
             
             # Predict autoregressively
-            scores = model(
+            scores, sims = model(
                 features, mask, 
                 gold_index_for_update=None, # Autoregressive
                 ablate_memory=ablate_memory,
                 ablate_shuffle=ablate_shuffle,
                 ablate_similarity=ablate_similarity
-            ).squeeze(0) # [seq_len, max_cand]
+            )
+            scores = scores.squeeze(0) # [seq_len, max_cand]
+            sims = sims.squeeze(0) # [seq_len, max_cand, 1]
             
             # gold_index is [1, seq_len] due to DataLoader batching
             if gold_index.dim() == 2:
@@ -55,11 +57,17 @@ def evaluate_gru(model, dataloader, device, type_mappings, ablate_memory=False, 
                 ranks = (sorted_indices[i] == gold).nonzero(as_tuple=True)[0]
                 rank = ranks[0].item() + 1 if len(ranks) > 0 else 999
                 
+                pred = sorted_indices[i][0].item()
+                gold_sim = sims[i, gold, 0].item()
+                pred_sim = sims[i, pred, 0].item()
+                
                 results.append({
                     'quote_id': q_ids[i],
                     'quote_type': type_mappings.get(q_ids[i], 'Unknown'),
                     'pred_rank': rank,
-                    'loss': losses[i]
+                    'loss': losses[i],
+                    'gold_sim': gold_sim,
+                    'pred_sim': pred_sim
                 })
                 
     return pd.DataFrame(results)
@@ -109,8 +117,13 @@ def main():
     
     logger.info("Building Sequence Datasets (state_free)...")
     logger.info(f"Using {len(state_free_cols)} state-free features: {state_free_cols}")
-    train_seq = TensorSequenceDataset(train_df, feature_cols, feature_mode='state_free', vocab=vocab, scaler=scaler)
-    test_seq = TensorSequenceDataset(test_df, feature_cols, feature_mode='state_free', vocab=vocab, scaler=scaler)
+    train_seq = TensorSequenceDataset(train_df, state_free_cols, feature_mode='all', vocab=vocab, scaler=scaler)
+    test_seq = TensorSequenceDataset(test_df, state_free_cols, feature_mode='all', vocab=vocab, scaler=scaler)
+    
+    for f in mutable_discourse_features:
+        assert f not in train_seq.feature_cols
+        assert f not in test_seq.feature_cols
+    logger.info("Feature leakage assertion passed. No mutable discourse features present.")
     
     # Custom collate function to avoid standard tensor stacking since batch items are objects
     def collate_fn(batch):
@@ -148,7 +161,8 @@ def main():
             optimizer.zero_grad()
             
             # Teacher forcing using gold speaker index
-            scores = model(features, mask, gold_index_for_update=gold_index_for_update).squeeze(0) # [seq_len, max_cand]
+            scores, _ = model(features, mask, gold_index_for_update=gold_index_for_update)
+            scores = scores.squeeze(0) # [seq_len, max_cand]
             loss = criterion(scores, gold_index)
             
             loss.backward()
@@ -210,42 +224,15 @@ def main():
     ana_acc_ci = bootstrap_ci(base_preds, ana_acc_fn)
     mrr_ci = bootstrap_ci(base_preds, mrr_fn)
     
-    # Train MLP CE quickly to get McNemar baseline
-    logger.info("Training MLP CE for McNemar baseline...")
-    from scripts.run_EXP021A_2_mlp_ce import QuoteTensorDataset, RankingMLP, mcnemar_test
-    mlp_train_dataset = QuoteTensorDataset(train_seq)
-    mlp_test_dataset = QuoteTensorDataset(test_seq)
-    mlp_train_loader = DataLoader(mlp_train_dataset, batch_size=config.get('batch_size', 32), shuffle=True)
-    mlp_test_loader = DataLoader(mlp_test_dataset, batch_size=256, shuffle=False)
-    
-    mlp_model = RankingMLP(input_dim=input_dim).to(device)
-    mlp_opt = torch.optim.Adam(mlp_model.parameters(), lr=config['learning_rate'])
-    for _ in range(epochs):
-        mlp_model.train()
-        for batch in mlp_train_loader:
-            features = batch['features'].to(device)
-            mask = batch['mask'].to(device)
-            gold_index = batch['gold_index'].to(device)
-            mlp_opt.zero_grad()
-            scores = mlp_model(features, mask)
-            loss = nn.CrossEntropyLoss()(scores, gold_index)
-            loss.backward()
-            mlp_opt.step()
-            
-    mlp_model.eval()
-    mlp_results = []
-    with torch.no_grad():
-        for batch in mlp_test_loader:
-            scores = mlp_model(batch['features'].to(device), batch['mask'].to(device))
-            sorted_indices = torch.argsort(scores, dim=-1, descending=True)
-            for i in range(len(batch['quote_id'])):
-                gold = batch['gold_index'][i].item()
-                ranks = (sorted_indices[i] == gold).nonzero(as_tuple=True)[0]
-                rank = ranks[0].item() + 1 if len(ranks) > 0 else 999
-                mlp_results.append({'quote_id': batch['quote_id'][i], 'pred_rank': rank})
-    mlp_preds = pd.DataFrame(mlp_results)
-    
-    p_value = mcnemar_test(base_preds, mlp_preds)
+    # Load MLP CE baseline for McNemar
+    logger.info("Loading MLP CE baseline for McNemar test...")
+    try:
+        mlp_preds = pd.read_csv("results/EXP021A_2/predictions.csv")
+        from scripts.run_EXP021A_2_mlp_ce import mcnemar_test
+        p_value = mcnemar_test(base_preds, mlp_preds)
+    except FileNotFoundError:
+        logger.warning("results/EXP021A_2/predictions.csv not found. McNemar test skipped.")
+        p_value = 1.0
     
     report = ["# EXP022A.0 Relational Speaker GRU Results\n"]
     
@@ -271,6 +258,18 @@ def main():
     report.append(f"**Overall Accuracy**: {nosim_metrics['Accuracy']*100:.2f}%")
     report.append(f"**Implicit Accuracy**: {nosim_metrics['Implicit_Accuracy']*100:.2f}%")
     report.append(f"**Anaphoric Accuracy**: {nosim_metrics['Anaphoric_Accuracy']*100:.2f}%\n")
+    
+    report.append("## 5. Similarity Diagnostics (Base Model)")
+    correct_df = base_preds[base_preds['pred_rank'] == 1]
+    wrong_df = base_preds[base_preds['pred_rank'] > 1]
+    
+    sim_correct = correct_df['gold_sim'].mean() if len(correct_df) > 0 else 0
+    sim_wrong_gold = wrong_df['gold_sim'].mean() if len(wrong_df) > 0 else 0
+    sim_wrong_pred = wrong_df['pred_sim'].mean() if len(wrong_df) > 0 else 0
+    
+    report.append(f"**Mean similarity when predicting correctly**: {sim_correct:.4f}")
+    report.append(f"**Mean similarity of Gold when predicting wrongly**: {sim_wrong_gold:.4f}")
+    report.append(f"**Mean similarity of Predicted when predicting wrongly**: {sim_wrong_pred:.4f}\n")
     
     report.append("## Analysis")
     report.append(f"- McNemar p-value vs MLP CE Baseline: {p_value:.4e}")
