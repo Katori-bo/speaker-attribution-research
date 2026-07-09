@@ -70,12 +70,16 @@ def compute_metrics(preds_df):
     implicit_df = preds_df[preds_df['quote_type'] == 'Implicit']
     implicit_acc = (implicit_df['pred_rank'] == 1).mean() if len(implicit_df) > 0 else 0
     
+    anaphoric_df = preds_df[preds_df['quote_type'] == 'Anaphoric']
+    anaphoric_acc = (anaphoric_df['pred_rank'] == 1).mean() if len(anaphoric_df) > 0 else 0
+    
     # LogLoss (Cross Entropy)
     log_loss = preds_df['loss'].mean()
     
     return {
         "Accuracy": acc,
         "Implicit_Accuracy": implicit_acc,
+        "Anaphoric_Accuracy": anaphoric_acc,
         "MRR": mrr,
         "Recall@3": recall3,
         "LogLoss": log_loss

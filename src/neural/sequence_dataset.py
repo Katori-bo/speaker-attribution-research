@@ -19,12 +19,19 @@ class NovelSequenceTensor:
 def build_character_vocab(df: pd.DataFrame, vocab_path: str = "data/character_vocab.json") -> Dict[str, int]:
     candidates = set(df['candidate'].dropna().unique())
     golds = set(df['gold_speaker'].dropna().unique())
-    characters = sorted(candidates | golds)
-    
     vocab = {"<PAD>": 0, "<UNK>": 1}
-    for char in characters:
-        if char not in vocab:
-            vocab[char] = len(vocab)
+    idx = 2
+    
+    df_copy = df.copy()
+    df_copy['novel_candidate'] = df_copy['novel'] + "::" + df_copy['candidate'].astype(str)
+    df_copy['novel_gold'] = df_copy['novel'] + "::" + df_copy['gold_speaker'].astype(str)
+    
+    cands = set(df_copy['novel_candidate'].dropna().unique())
+    golds = set(df_copy['novel_gold'].dropna().unique())
+    unique_candidates = sorted(cands | golds)
+    
+    for c in unique_candidates:
+        vocab[c] = len(vocab)
             
     with open(vocab_path, "w") as f:
         json.dump(vocab, f, indent=4)
@@ -57,10 +64,9 @@ class TensorSequenceDataset(Dataset):
         self.sequences = []
         self._build_sequences(df, scaler)
         
-    def _get_id(self, char_str: str) -> int:
-        if not char_str or pd.isna(char_str):
-            return self.vocab.get("<UNK>", 1)
-        return self.vocab.get(char_str, self.vocab.get("<UNK>", 1))
+    def _get_char_id(self, novel_id: str, char_str: str) -> int:
+        full_id = f"{novel_id}::{char_str}"
+        return self.vocab.get(full_id, self.vocab.get("<UNK>", 1))
         
     def _build_sequences(self, df: pd.DataFrame, scaler=None):
         global_max_candidates = df.groupby('quote_id').size().max()
@@ -96,17 +102,17 @@ class TensorSequenceDataset(Dataset):
                 quote_df = novel_df_scaled[novel_df_scaled['quote_id'] == quote_id]
                 
                 gold_speaker = quote_df.iloc[0]['gold_speaker']
-                gold_speaker_id[q_idx] = self._get_id(gold_speaker)
                 
                 gold_idx_found = False
                 for c_idx, (_, row) in enumerate(quote_df.iterrows()):
                     feats = row[self.active_features].values.astype(np.float32)
                     candidate_features[q_idx, c_idx, :] = torch.tensor(feats)
                     candidate_mask[q_idx, c_idx] = True
-                    candidate_ids[q_idx, c_idx] = self._get_id(row['candidate'])
+                    candidate_ids[q_idx, c_idx] = self._get_char_id(novel_id, row['candidate'])
                     
-                    if bool(row['label']) and not gold_idx_found:
+                    if str(row['candidate']) == str(gold_speaker):
                         gold_index[q_idx] = c_idx
+                        gold_speaker_id[q_idx] = self._get_char_id(novel_id, gold_speaker)
                         gold_idx_found = True
                         
                 # If no gold candidate is found (or label is absent), default to 0.

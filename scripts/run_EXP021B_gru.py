@@ -154,6 +154,7 @@ def main():
             loss = criterion(scores, gold_index)
             
             loss.backward()
+            torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
             optimizer.step()
             
             total_loss += loss.item() * len(gold_index)
@@ -198,31 +199,73 @@ def main():
     logger.info("Computing Bootstrapped Confidence Intervals...")
     acc_fn = lambda x: (x['pred_rank'] == 1).mean()
     imp_acc_fn = lambda x: (x[x['quote_type'] == 'Implicit']['pred_rank'] == 1).mean() if len(x[x['quote_type'] == 'Implicit']) > 0 else 0
+    ana_acc_fn = lambda x: (x[x['quote_type'] == 'Anaphoric']['pred_rank'] == 1).mean() if len(x[x['quote_type'] == 'Anaphoric']) > 0 else 0
     mrr_fn = lambda x: (1.0 / x['pred_rank']).mean()
     
     acc_ci = bootstrap_ci(base_preds, acc_fn)
     imp_acc_ci = bootstrap_ci(base_preds, imp_acc_fn)
+    ana_acc_ci = bootstrap_ci(base_preds, ana_acc_fn)
     mrr_ci = bootstrap_ci(base_preds, mrr_fn)
+    
+    # Train MLP CE quickly to get McNemar baseline
+    logger.info("Training MLP CE for McNemar baseline...")
+    from scripts.run_EXP021A_2_mlp_ce import QuoteTensorDataset, RankingMLP, mcnemar_test
+    mlp_train_dataset = QuoteTensorDataset(train_seq)
+    mlp_test_dataset = QuoteTensorDataset(test_seq)
+    mlp_train_loader = DataLoader(mlp_train_dataset, batch_size=config.get('batch_size', 32), shuffle=True)
+    mlp_test_loader = DataLoader(mlp_test_dataset, batch_size=256, shuffle=False)
+    
+    mlp_model = RankingMLP(input_dim=input_dim).to(device)
+    mlp_opt = torch.optim.Adam(mlp_model.parameters(), lr=config['learning_rate'])
+    for _ in range(epochs):
+        mlp_model.train()
+        for batch in mlp_train_loader:
+            features = batch['features'].to(device)
+            mask = batch['mask'].to(device)
+            gold_index = batch['gold_index'].to(device)
+            mlp_opt.zero_grad()
+            scores = mlp_model(features, mask)
+            loss = nn.CrossEntropyLoss()(scores, gold_index)
+            loss.backward()
+            mlp_opt.step()
+            
+    mlp_model.eval()
+    mlp_results = []
+    with torch.no_grad():
+        for batch in mlp_test_loader:
+            scores = mlp_model(batch['features'].to(device), batch['mask'].to(device))
+            sorted_indices = torch.argsort(scores, dim=-1, descending=True)
+            for i in range(len(batch['quote_id'])):
+                gold = batch['gold_index'][i].item()
+                ranks = (sorted_indices[i] == gold).nonzero(as_tuple=True)[0]
+                rank = ranks[0].item() + 1 if len(ranks) > 0 else 999
+                mlp_results.append({'quote_id': batch['quote_id'][i], 'pred_rank': rank})
+    mlp_preds = pd.DataFrame(mlp_results)
+    
+    p_value = mcnemar_test(base_preds, mlp_preds)
     
     report = ["# EXP021B Speaker-Feedback GRU Results\n"]
     
     report.append("## 1. Full Autoregressive Evaluation")
     report.append(f"**Overall Accuracy**: {base_metrics['Accuracy']*100:.2f}% (95% CI: {acc_ci[0]*100:.2f}% - {acc_ci[1]*100:.2f}%)")
     report.append(f"**Implicit Accuracy**: {base_metrics['Implicit_Accuracy']*100:.2f}% (95% CI: {imp_acc_ci[0]*100:.2f}% - {imp_acc_ci[1]*100:.2f}%)")
+    report.append(f"**Anaphoric Accuracy**: {base_metrics['Anaphoric_Accuracy']*100:.2f}% (95% CI: {ana_acc_ci[0]*100:.2f}% - {ana_acc_ci[1]*100:.2f}%)")
     report.append(f"**MRR**: {base_metrics['MRR']:.4f} (95% CI: {mrr_ci[0]:.4f} - {mrr_ci[1]:.4f})")
     report.append(f"**Recall@3**: {base_metrics['Recall@3']*100:.2f}%")
     report.append(f"**LogLoss**: {base_metrics['LogLoss']:.4f}\n")
     
     report.append("## 2. Memory Ablation (Reset state every quote)")
     report.append(f"**Overall Accuracy**: {reset_metrics['Accuracy']*100:.2f}%")
-    report.append(f"**Implicit Accuracy**: {reset_metrics['Implicit_Accuracy']*100:.2f}%\n")
+    report.append(f"**Implicit Accuracy**: {reset_metrics['Implicit_Accuracy']*100:.2f}%")
+    report.append(f"**Anaphoric Accuracy**: {reset_metrics['Anaphoric_Accuracy']*100:.2f}%\n")
     
     report.append("## 3. Feedback Ablation (Speaker vectors = Zeros)")
     report.append(f"**Overall Accuracy**: {nofb_metrics['Accuracy']*100:.2f}%")
-    report.append(f"**Implicit Accuracy**: {nofb_metrics['Implicit_Accuracy']*100:.2f}%\n")
+    report.append(f"**Implicit Accuracy**: {nofb_metrics['Implicit_Accuracy']*100:.2f}%")
+    report.append(f"**Anaphoric Accuracy**: {nofb_metrics['Anaphoric_Accuracy']*100:.2f}%\n")
     
     report.append("## Analysis")
-    report.append(f"- MLP CE (State-Free) Baseline: 68.88%")
+    report.append(f"- McNemar p-value vs MLP CE Baseline: {p_value:.4e}")
     diff = (base_metrics['Accuracy'] - 0.6888) * 100
     report.append(f"- The GRU achieved a {'gain' if diff > 0 else 'loss'} of {abs(diff):.2f} pp against the memory-free neural baseline.")
     
