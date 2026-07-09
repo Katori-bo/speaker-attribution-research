@@ -1,0 +1,124 @@
+{
+    "num_novels": 28,
+    "num_chapters": 0,
+    "num_quotes": 37131,
+    "num_speakers": 804,
+    "num_unknown_speakers": 0,
+    "avg_quote_length": 24.535805661037948,
+    "longest_quote_length": 828,
+    "long_tail_pct": 35.32338308457712,
+    "novel_breakdown": {
+        "ARoomWithAView": {
+            "quotes": 1634,
+            "speakers": 27
+        },
+        "HardTimes": {
+            "quotes": 1616,
+            "speakers": 25
+        },
+        "NorthangerAbbey": {
+            "quotes": 842,
+            "speakers": 16
+        },
+        "WinnieThePooh": {
+            "quotes": 879,
+            "speakers": 13
+        },
+        "TheMysteriousAffairAtStyles": {
+            "quotes": 1861,
+            "speakers": 28
+        },
+        "AlicesAdventuresInWonderland": {
+            "quotes": 697,
+            "speakers": 32
+        },
+        "TheSignOfTheFour": {
+            "quotes": 640,
+            "speakers": 18
+        },
+        "AnneOfGreenGables": {
+            "quotes": 1196,
+            "speakers": 25
+        },
+        "TheGambler": {
+            "quotes": 767,
+            "speakers": 20
+        },
+        "Emma": {
+            "quotes": 1593,
+            "speakers": 16
+        },
+        "MansfieldPark": {
+            "quotes": 1157,
+            "speakers": 24
+        },
+        "ThePictureOfDorianGray": {
+            "quotes": 1171,
+            "speakers": 31
+        },
+        "DaisyMiller": {
+            "quotes": 550,
+            "speakers": 10
+        },
+        "TheManWhoWasThursday": {
+            "quotes": 799,
+            "speakers": 28
+        },
+        "WhereAngelsFearToTread": {
+            "quotes": 1000,
+            "speakers": 18
+        },
+        "HowardsEnd": {
+            "quotes": 2606,
+            "speakers": 46
+        },
+        "SenseAndSensibility": {
+            "quotes": 1085,
+            "speakers": 20
+        },
+        "TheInvisibleMan": {
+            "quotes": 904,
+            "speakers": 29
+        },
+        "Persuasion": {
+            "quotes": 488,
+            "speakers": 24
+        },
+        "TheAwakening": {
+            "quotes": 584,
+            "speakers": 18
+        },
+        "OliverTwist": {
+            "quotes": 2598,
+            "speakers": 90
+        },
+        "TheSportOfTheGods": {
+            "quotes": 640,
+            "speakers": 34
+        },
+        "TheAgeOfInnocence": {
+            "quotes": 1393,
+            "speakers": 31
+        },
+        "AHandfulOfDust": {
+            "quotes": 2337,
+            "speakers": 70
+        },
+        "NightAndDay": {
+            "quotes": 2091,
+            "speakers": 38
+        },
+        "APassageToIndia": {
+            "quotes": 2123,
+            "speakers": 47
+        },
+        "PrideAndPrejudice": {
+            "quotes": 1270,
+            "speakers": 27
+        },
+        "TheSunAlsoRises": {
+            "quotes": 2610,
+            "speakers": 41
+        }
+    }
+}

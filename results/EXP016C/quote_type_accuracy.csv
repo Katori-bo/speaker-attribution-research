@@ -1,0 +1,2 @@
+Mode,Explicit Named,Explicit Named_N,Explicit Named_Recovered,Explicit Named_Regressed,Explicit Named_Net,Explicit Nominal,Explicit Nominal_N,Explicit Nominal_Recovered,Explicit Nominal_Regressed,Explicit Nominal_Net,Anaphoric,Anaphoric_N,Anaphoric_Recovered,Anaphoric_Regressed,Anaphoric_Net,Implicit,Implicit_N,Implicit_Recovered,Implicit_Regressed,Implicit_Net
+reverse_one_step_autoregressive,0.8356,1119,79,6,73,0.3000,10,1,0,1,0.6442,624,96,19,77,0.8742,763,230,21,209

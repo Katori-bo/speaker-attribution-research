@@ -5,4 +5,4 @@ splits: "data/splits/"
 # Output Paths
 experiments: "experiments/"
 logs: "logs/"
-reports: "reports/"
+reports: "results/"

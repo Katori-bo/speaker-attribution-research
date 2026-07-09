@@ -1,0 +1,4 @@
+Mode,Explicit Named,Explicit Named_N,Explicit Named_Recovered,Explicit Named_Regressed,Explicit Named_Net,Explicit Nominal,Explicit Nominal_N,Explicit Nominal_Recovered,Explicit Nominal_Regressed,Explicit Nominal_Net,Anaphoric,Anaphoric_N,Anaphoric_Recovered,Anaphoric_Regressed,Anaphoric_Net,Implicit,Implicit_N,Implicit_Recovered,Implicit_Regressed,Implicit_Net
+teacher_forced,0.8374,1119,82,7,75,0.3000,10,1,0,1,0.6587,624,104,18,86,0.8873,763,238,19,219
+one_step_autoregressive,0.8025,1119,44,8,36,0.4000,10,2,0,2,0.5897,624,65,22,43,0.6186,763,82,68,14
+fully_autoregressive,0.7703,1119,0,0,0,0.2000,10,0,0,0,0.5208,624,0,0,0,0.6003,763,0,0,0

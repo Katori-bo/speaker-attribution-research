@@ -25,6 +25,21 @@ The architecture emphasizes:
 
 ---
 
+## Architectural Evolution
+
+The project architecture evolves based on experimental evidence:
+
+* **Stage 1: Deterministic features**
+  Initial baseline relying on structural cues.
+* **Stage 2: Explicit discourse state**
+  Contextual caching of recent narrative events (frozen after EXP011).
+* **Evidence: Performance plateau**
+  EXP011 demonstrated that richer explicit state yields diminishing returns.
+* **Stage 3: Minimal semantic representations**
+  Current focus: targeting specific failure categories (e.g., coreference) with lightweight semantic modules.
+
+---
+
 ## High-Level Pipeline
 
 Raw Novel

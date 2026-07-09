@@ -1,0 +1,259 @@
+Quote_ID,Failure_Category,Gold_Speaker,Candidate_List,Quote,Context (Referring Expression),Explicit Signals Present?,Pronouns Detected,Proper Names Detected,Dialogue Tag Detected,Previous Speaker,Conversation Turn Index,Discourse Context Length,ANNOTATION: Primary Category,ANNOTATION: Secondary Category,ANNOTATION: Evidence,ANNOTATION: Context Window Needed,ANNOTATION: Confidence,ANNOTATION: Explicit Alternative Feasible?,ANNOTATION: Notes,LR_Prediction,GBM_Prediction
+AlicesAdventuresInWonderland_644,Both_Fail,Alice,"Hare | The Queen | Alice | The Cook | The King Of Hearts | Two | The White Rabbit | Bill, The Lizard | Five | The Dormouse | Seven | The Gryphon | The Knave Of Hearts","Oh, I _beg_ your pardon!",she exclaimed,No,she,None,exclaimed,The White Rabbit,645.0,13.0,1. Reference: Coreference and Aliasing,,pronoun,Nearby,High,Yes,Pronoun 'she' requires coreference resolution,The White Rabbit,The White Rabbit
+AlicesAdventuresInWonderland_607,Both_Fail,The King Of Hearts,"Hare | The Queen | Alice | The King Of Hearts | Two | The White Rabbit | Bill, The Lizard | The Hatter | The Dormouse | Five | Seven | The Gryphon | The Knave Of Hearts","Give your evidence, or I'll have you
+executed, whether you're nervous or not.",the King repeated,No,None,King,None,The Dormouse,608.0,17.0,1. Reference: Coreference and Aliasing,,alias,Local,High,Yes,Alias 'the King' requires normalization to 'The King Of Hearts',Hare,Hare
+PrideAndPrejudice_909,Both_Fail,Elizabeth,George Wickham | Mrs. Gardiner | Elizabeth | Lydia | Mr. Gardiner | Colonel Forster | Mary | Jane | Mrs. Bennet,"But tell me all and every thing about it, which
+I have not already heard. Give me farther particulars. What did Colonel
+Forster say? Had they no apprehension of any thing before the elopement
+took place? They must have seen them together for ever.",the former continued the subject by saying,No,the former,None,continued,Mary,910.0,42.0,1. Reference: Coreference and Aliasing,,discourse marker,Nearby,High,Yes,'the former' acts as a discourse marker,Mary,Mary
+PrideAndPrejudice_1048,Explicit_Present_But_Fail,Mr. Bennet,Kitty | Mr. Bennet | Mr. Bingley | Mrs. Philips | Elizabeth | Lydia | Mary | Jane | Mrs. Bennet,"'Tis an etiquette I despise, If he wants our society, let
+him seek it. He knows where we live. I will not spend _my_ hours in
+running after my neighbours every time they go away, and come back
+again.",said he,Yes,he,None,said,Mrs. Bennet,1049.0,7.0,1. Reference: Coreference and Aliasing,,pronoun,Nearby,High,Yes,Pronoun 'he',Kitty,Mrs. Bennet
+PrideAndPrejudice_796,GBM_Only,Elizabeth,Kitty | Mr. Bennet | Elizabeth | Lydia | Mary | Jane | Mrs. Bennet,"Indeed you are mistaken. I have no such injuries to resent. It is not
+of peculiar, but of general evils, which I am now complaining. Our
+importance, our respectability in the world, must be affected by the
+wild volatility, the assurance and disdain of all restraint which mark
+Lydia's character. Excuse me--for I must speak plainly. If you, my dear
+father, will not take the trouble of checking her exuberant spirits, and
+of teaching her that her present pursuits are not to be the business of
+her life, she will soon be beyond the reach of amendment. Her character
+will be fixed, and she will, at sixteen, be the most determined flirt
+that ever made herself and her family ridiculous. A flirt too, in the
+worst and meanest degree of flirtation; without any attraction beyond
+youth and a tolerable person; and from the ignorance and emptiness of
+her mind, wholly unable to ward off any portion of that universal
+contempt which her rage for admiration will excite. In this danger Kitty
+is also comprehended. She will follow wherever Lydia leads. Vain,
+ignorant, idle, and absolutely uncontrouled! Oh! my dear father, can you
+suppose it possible that they will not be censured and despised wherever
+they are known, and that their sisters will not be often involved in the
+disgrace?",nan,Yes,None,None,None,Elizabeth,797.0,3.0,3. Pragmatics: Speaker–Addressee Semantics,2. Discourse: Speaker Continuity,explicit addressee,Conversation,High,No,Addresses 'my dear father' and discusses sisters Lydia and Kitty,Lydia,Elizabeth
+PrideAndPrejudice_70,GBM_Only,Jane,Mrs. Hurst | Mr. Bennet | Mr. Bingley | Miss Bingley | Elizabeth | Mr. Darcy | Jane | Mrs. Bennet,"Certainly not; at first. But they are very pleasing women when you
+converse with them. Miss Bingley is to live with her brother and keep
+his house; and I am much mistaken if we shall not find a very charming
+neighbour in her.",nan,Yes,None,None,None,Jane,71.0,3.0,2. Discourse: Speaker Continuity,,dialogue tag absent,Nearby,High,Yes,Turn continuation,Mrs. Hurst,Jane
+PrideAndPrejudice_400,Both_Fail,Elizabeth,George Wickham | Mr. Denney | Mr. Collins | Elizabeth | Mr. Darcy | Charlotte Lucas | Mary | Jane,"It is _your_ turn to say something now, Mr. Darcy.--_I_ talked about
+the dance, and _you_ ought to make some kind of remark on the size of
+the room, or the number of couples.",she addressed him a second time with,No,"him, she",None,None,Charlotte Lucas,401.0,36.0,3. Pragmatics: Speaker–Addressee Semantics,1. Reference: Coreference and Aliasing,explicit addressee,Local,High,Yes,Addresses Mr. Darcy directly in text,Charlotte Lucas,Charlotte Lucas
+PrideAndPrejudice_390,Explicit_Present_But_Fail,Elizabeth,Elizabeth | George Wickham | Jane | Mr. Collins,"Very true, indeed;--and now, my dear Jane, what have you got to say in
+behalf of the interested people who have probably been concerned in the
+business?--Do clear _them_ too, or we shall be obliged to think ill of
+somebody.",nan,Yes,None,None,None,George Wickham,391.0,3.0,3. Pragmatics: Speaker–Addressee Semantics,2. Discourse: Speaker Continuity,explicit addressee,Local,High,No,Addresses 'my dear Jane',George Wickham,George Wickham
+PrideAndPrejudice_854,Explicit_Present_But_Fail,Mr. Bingley,Mr. Bingley | Mrs. Gardiner | Elizabeth | Mr. Darcy | Mr. Gardiner | Jane | Mrs. Reynolds,"It
+is above eight months. We have not met since the 26th of November, when
+we were all dancing together at Netherfield.",he added,Yes,he,None,added,Mr. Gardiner,855.0,8.0,1. Reference: Coreference and Aliasing,,pronoun,Nearby,High,Yes,Pronoun 'he',Mr. Gardiner,Mr. Gardiner
+PrideAndPrejudice_169,Both_Fail,Mr. Darcy,Mrs. Hurst | Mr. Bennet | Mr. Bingley | Miss Bingley | Elizabeth | Mr. Darcy | Mr. Hurst | Mary | Lydia | Mrs. Bennet,"Not at all, they were brightened by the exercise.",he replied,No,he,None,replied,Mr. Bingley,170.0,10.0,1. Reference: Coreference and Aliasing,2. Discourse: Speaker Continuity,pronoun,Nearby,High,Yes,Pronoun 'he',Mr. Bennet,Mr. Bennet
+AlicesAdventuresInWonderland_640,Both_Fail,The King Of Hearts,The Queen | Alice | The Cook | The King Of Hearts | The White Rabbit | The Hatter | The Dormouse,"Really, my
+dear, _you_ must cross-examine the next witness. It quite makes my
+forehead ache!",he added in an undertone to the Queen,No,he,Queen,added,The Queen,641.0,37.0,1. Reference: Coreference and Aliasing,3. Pragmatics: Speaker–Addressee Semantics,pronoun,Nearby,High,Yes,Pronoun 'he' addressing the Queen,The Queen,The Queen
+PrideAndPrejudice_979,Explicit_Present_But_Fail,Mrs. Bennet,George Wickham | Kitty | Jane | Mr. Bennet | Mrs. Hill | Mrs. Gardiner | Elizabeth | Mr. Gardiner | Mary | Lydia | Mrs. Bennet,"My dear, dear Lydia! This is delightful indeed!--She will
+be married!--I shall see her again!--She will be married at sixteen!--My
+good, kind brother!--I knew how it would be--I knew he would manage
+every thing. How I long to see her! and to see dear Wickham too! But the
+clothes, the wedding clothes! I will write to my sister Gardiner about
+them directly. Lizzy, my dear, run down to your father, and ask him how
+much he will give her. Stay, stay, I will go myself. Ring the bell,
+Kitty, for Hill. I will put on my things in a moment. My dear, dear
+Lydia!--How merry we shall be together when we meet!",she cried,Yes,she,None,cried,Elizabeth,980.0,9.0,3. Pragmatics: Speaker–Addressee Semantics,1. Reference: Coreference and Aliasing,explicit addressee,Local,High,No,Mentions Lizzy and 'your father',George Wickham,Mr. Bennet
+PrideAndPrejudice_408,Explicit_Present_But_Fail,Elizabeth,Kitty | Jane | Mr. Denney | Mr. Collins | Elizabeth | Mr. Darcy | Charlotte Lucas | Mary | Lydia,"When you met us there the other day, we had just
+been forming a new acquaintance.",She answered in the affirmative and unable to resist the temptation added,Yes,she,She,"added, answered",Mr. Darcy,409.0,73.0,1. Reference: Coreference and Aliasing,,pronoun,Nearby,High,Yes,Pronoun 'She',Mr. Denney,Mr. Denney
+PrideAndPrejudice_675,Both_Fail,Colonel Fitzwilliam,Elizabeth | Mr. Darcy | Charlotte Lucas | Colonel Fitzwilliam,"Yes--if Darcy does not put it off again. But I am at his disposal. He
+arranges the business just as he pleases.",nan,No,None,None,None,Elizabeth,676.0,3.0,2. Discourse: Speaker Continuity,,dialogue tag absent,Conversation,High,Yes,Turn continuation,Charlotte Lucas,Charlotte Lucas
+DaisyMiller_240,Explicit_Present_But_Fail,Mrs. Miller,Eugenio | Daisy Miller | Mrs. Miller | Winterbourne,"Oh, Daisy; now we can go!",said Mrs Miller,Yes,None,"Mrs, Miller",said,Daisy Miller,241.0,15.0,1. Reference: Coreference and Aliasing,,alias,Local,High,Yes,Mrs Miller missing period vs Mrs. Miller,Daisy Miller,Daisy Miller
+PrideAndPrejudice_591,Explicit_Present_But_Fail,Elizabeth,Elizabeth | Charlotte Lucas | Mr. Gardiner | Mrs. Gardiner,"My dear, dear
+aunt, what delight! what felicity! You give me
+fresh life and vigour. Adieu to disappointment and spleen. What are men
+to rocks and mountains? Oh! what hours of transport we shall spend! And
+when we _do_ return, it shall not be like other travellers, without
+being able to give one accurate idea of any thing. We _will_ know where
+we have gone--we _will_ recollect what we have seen. Lakes, mountains,
+and rivers, shall not be jumbled together in our imaginations; nor, when
+we attempt to describe any particular scene, will we begin quarrelling
+about its relative situation. Let _our_ first effusions be less
+insupportable than those of the generality of travellers.",she rapturously cried,Yes,she,None,cried,Mrs. Gardiner,592.0,21.0,3. Pragmatics: Speaker–Addressee Semantics,1. Reference: Coreference and Aliasing,explicit addressee,Local,High,No,Addresses 'My dear aunt',Charlotte Lucas,Mrs. Gardiner
+PrideAndPrejudice_765,Both_Fail,Jane,George Wickham | Miss Darcy | Jane | Mr. Bennet | Elizabeth | Mr. Darcy | Mary | Lydia,"I do not know when I have been more shocked, Wickham so
+very bad! It is almost past belief. And poor Mr. Darcy! dear Lizzy, only
+consider what he must have suffered. Such a disappointment! and with the
+knowledge of your ill opinion too! and having to relate such a thing of
+his sister! It is really too distressing. I am sure you must feel it
+so.",said she,No,she,None,said,Elizabeth,766.0,8.0,3. Pragmatics: Speaker–Addressee Semantics,1. Reference: Coreference and Aliasing,explicit addressee,Local,High,No,Addresses 'dear Lizzy',George Wickham,George Wickham
+PrideAndPrejudice_998,Explicit_Present_But_Fail,Lydia,George Wickham | Jane | Mr. Bennet | Mrs. Gardiner | Elizabeth | Mr. Stone | Mr. Darcy | Mr. Gardiner | Lydia | Mrs. Bennet,"Well, and so we breakfasted at ten as usual; I thought it would never
+be over; for, by the bye, you are to understand, that my uncle and aunt
+were horrid unpleasant all the time I was with them. If you'll believe
+me, I did not once put my foot out of doors, though I was there a
+fortnight. Not one party, or scheme, or any thing. To be sure London was
+rather thin, but however the little Theatre was open. Well, and so just
+as the carriage came to the door, my uncle was called away upon business
+to that horrid man Mr. Stone. And then, you know, when once they get
+together, there is no end of it. Well, I was so frightened I did not
+know what to do, for my uncle was to give me away; and if we were beyond
+the hour, we could not be married all day. But, luckily, he came back
+again in ten minutes time, and then we all set out. However, I
+recollected afterwards, that if he _had_ been prevented going, the
+wedding need not be put off, for Mr. Darcy might have done as well.",nan,Yes,None,None,None,Elizabeth,999.0,3.0,2. Discourse: Speaker Continuity,,topic continuation,Nearby,High,No,Long narrative continuation,George Wickham,Elizabeth
+PrideAndPrejudice_904,Both_Fail,Mrs. Bennet,George Wickham | Kitty | Jane | Mr. Bennet | Mr. Collins | Mrs. Gardiner | Elizabeth | Charlotte Lucas | Mr. Gardiner | Colonel Forster | Mary | Lydia | Mrs. Bennet,"If I had been able, to carry my point of going to Brighton,
+with all my family, _this_ would not have happened; but poor dear Lydia
+had nobody to take care of her. Why did the Forsters ever let her go out
+of their sight? I am sure there was some great neglect or other on their
+side, for she is not the kind of girl to do such a thing, if she had
+been well looked after. I always thought they were very unfit to have
+the charge of her; but I was over-ruled, as I always am. Poor dear
+child! And now here's Mr. Bennet gone away, and I know he will fight
+Wickham, wherever he meets him, and then he will be killed, and what is
+to become of us all? The Collinses will turn us out, before he is cold
+in his grave; and if you are not kind to us, brother, I do not know what
+we shall do.",said she,No,she,None,said,Jane,905.0,8.0,3. Pragmatics: Speaker–Addressee Semantics,1. Reference: Coreference and Aliasing,explicit addressee,Local,High,No,Refers to Mr. Bennet and 'brother',George Wickham,Jane
+PrideAndPrejudice_125,Both_Fail,Mr. Darcy,Elizabeth | Sir William Lucas | Mr. Darcy | Miss Bingley,I should imagine not.,nan,No,None,None,None,Sir William Lucas,126.0,3.0,2. Discourse: Speaker Continuity,,dialogue tag absent,Nearby,High,Yes,Turn continuation,Sir William Lucas,Sir William Lucas
+PrideAndPrejudice_224,GBM_Only,Mrs. Bennet,Kitty | Mr. Bingley | Miss Bingley | Elizabeth | Mr. Darcy | Lydia | Mrs. Bennet,"I cannot see that London has any great advantage over the country for
+my part, except the shops and public places. The country is a vast deal
+pleasanter, is not it, Mr. Bingley?",nan,No,None,None,None,Elizabeth,225.0,3.0,3. Pragmatics: Speaker–Addressee Semantics,2. Discourse: Speaker Continuity,explicit addressee,Nearby,High,No,Addresses 'Mr. Bingley?',Mr. Darcy,Mrs. Bennet
+DaisyMiller_535,Both_Fail,Mrs. Miller,Randolph | Mrs. Miller | Mr. Giovanelli | Daisy Miller | Winterbourne,"Daisy spoke of you the other day, Half the time she doesn t know what she s saying, but that time I think
+she did. She gave me a message she told me to tell you. She told me to
+tell you that she never was engaged to that handsome Italian. I am sure
+I am very glad; Mr. Giovanelli hasn t been near us since she was taken
+ill. I thought he was so much of a gentleman; but I don t call that
+very polite! A lady told me that he was afraid I was angry with him for
+taking Daisy round at night. Well, so I am, but I suppose he knows I m a
+lady. I would scorn to scold him. Anyway, she says she s not engaged. I
+don t know why she wanted you to know, but she said to me three times, And then she told me to ask if you
+remembered the time you went to that castle in Switzerland. But I said
+I wouldn t give any such messages as that. Only, if she is not engaged,
+I m sure I m glad to know it.",she said to him,No,"him, she",None,said,Daisy Miller,536.0,15.0,1. Reference: Coreference and Aliasing,,pronoun,Nearby,High,Yes,Pronoun 'she',Randolph,Randolph
+AlicesAdventuresInWonderland_632,GBM_Only,The King Of Hearts,"Hare | The Queen | Alice | The Cook | The King Of Hearts | Two | The White Rabbit | Bill, The Lizard | The Dormouse | Five | The Hatter | Seven | The Gryphon | The Knave Of Hearts","Give your evidence,",said the King,No,None,King,said,The Queen,633.0,13.0,1. Reference: Coreference and Aliasing,,alias,Local,High,Yes,Alias 'the King',Hare,The King Of Hearts
+PrideAndPrejudice_642,Both_Fail,Elizabeth,Lady Catherine De Bourgh | Elizabeth | Mr. Darcy | Charlotte Lucas | Colonel Fitzwilliam,"You shall hear then--but prepare yourself for something very dreadful.
+The first time of my ever seeing him in Hertfordshire, you must know,
+was at a ball--and at this ball, what do you think he did? He danced
+only four dances! I am sorry to pain you--but so it was. He danced only
+four dances, though gentlemen were scarce; and, to my certain knowledge,
+more than one young lady was sitting down in want of a partner. Mr.
+Darcy, you cannot deny the fact.",nan,No,None,None,None,Mr. Darcy,643.0,3.0,3. Pragmatics: Speaker–Addressee Semantics,2. Discourse: Speaker Continuity,explicit addressee,Local,High,No,Addresses Mr. Darcy directly,Lady Catherine De Bourgh,Mr. Darcy
+PrideAndPrejudice_29,Both_Fail,Mrs. Bennet,Kitty | Jane | Mr. Bennet | Mr. Bingley | Elizabeth | Mary | Lydia | Mrs. Bennet,"We are not in a way to know _what_ Mr. Bingley likes, since we are not to visit.",said her mother,No,her,None,said,Mr. Bennet,30.0,15.0,1. Reference: Coreference and Aliasing,,alias,Nearby,High,Yes,Alias 'her mother',Jane,Jane
+PrideAndPrejudice_812,Both_Fail,Elizabeth,George Wickham | Mr. Bennet | Mrs. Gardiner | Elizabeth | Mr. Gardiner,"And of this place, I might have been mistress! With
+these rooms I might now have been familiarly acquainted! Instead of
+viewing them as a stranger, I might have rejoiced in them as my own, and
+welcomed to them as visitors my uncle and aunt.--But no, that could never be: my uncle and aunt would have been lost
+to me: I should not have been allowed to invite them.",thought she,No,she,None,None,Mrs. Gardiner,813.0,11.0,1. Reference: Coreference and Aliasing,,pronoun,Nearby,High,Yes,Pronoun 'she',George Wickham,George Wickham
+AlicesAdventuresInWonderland_114,Both_Fail,The White Rabbit,Bill | Pat | The White Rabbit | Alice,"Catch him, you by the hedge!",the Rabbits voice along,No,None,Rabbits,None,Alice,115.0,23.0,1. Reference: Coreference and Aliasing,,alias,Local,High,Yes,'the Rabbits voice',Alice,Alice
+PrideAndPrejudice_949,Both_Fail,Elizabeth,Kitty | Mr. Bennet | Mrs. Hill | Butler | Elizabeth | Mr. Gardiner | Jane,"Oh, Papa, what news? what news? have you heard from my uncle?",her sister panting for breath came up with him and eagerly cried out,No,"her, him",None,cried,Mrs. Hill,950.0,68.0,3. Pragmatics: Speaker–Addressee Semantics,1. Reference: Coreference and Aliasing,explicit addressee,Local,High,No,Addresses 'Papa',Mrs. Hill,Mrs. Hill
+PrideAndPrejudice_787,GBM_Only,Mrs. Bennet,Colonel Millar | Kitty | Jane | Elizabeth | Mary | Lydia | Mrs. Bennet,"I am sure, I cried for two days together when Colonel
+Millar's regiment went away. I thought I should have broke my heart.",said she,No,she,None,said,Elizabeth,788.0,8.0,1. Reference: Coreference and Aliasing,,pronoun,Nearby,High,Yes,Pronoun 'she',Colonel Millar,Mrs. Bennet
+PrideAndPrejudice_875,GBM_Only,Elizabeth,Elizabeth | Mr. Darcy | Mr. Gardiner | Mrs. Gardiner,"Yes; and I told him we should not be able to keep our engagement.
+_That_ is all settled.",nan,Yes,None,None,None,Elizabeth,876.0,3.0,2. Discourse: Speaker Continuity,,dialogue tag absent,Nearby,High,Yes,Turn continuation,Mr. Darcy,Elizabeth
+PrideAndPrejudice_235,Both_Fail,Mr. Darcy,Kitty | Mr. Bingley | Miss Bingley | Elizabeth | Mr. Darcy | Lydia | Mrs. Bennet,"I have been used to consider poetry as the _food_ of love,",said Darcy,No,None,Darcy,said,Mrs. Bennet,236.0,10.0,1. Reference: Coreference and Aliasing,,alias,Local,High,Yes,Alias 'Darcy' vs 'Mr. Darcy',Elizabeth,Elizabeth
+PrideAndPrejudice_237,Both_Fail,Mr. Bingley,Kitty | Mr. Bingley | Miss Bingley | Elizabeth | Lydia | Mr. Darcy | Jane | Mrs. Bennet,"I am perfectly ready, I assure you, to keep my engagement; and when
+your sister is recovered, you shall if you please name the very day of
+the ball. But you would not wish to be dancing while she is ill.",nan,No,None,None,None,Mr. Darcy,238.0,3.0,2. Discourse: Speaker Continuity,,dialogue tag absent,Nearby,High,Yes,Turn continuation,Mr. Darcy,Mr. Darcy
+PrideAndPrejudice_844,Both_Fail,Elizabeth,Mrs. Gardiner | Elizabeth | Mr. Darcy | Mr. Gardiner | Mrs. Reynolds,"What will be his surprise, when he knows who they are! He takes them now for people of
+fashion.",thought she,No,she,None,None,Mrs. Reynolds,845.0,11.0,1. Reference: Coreference and Aliasing,,pronoun,Nearby,High,Yes,Pronoun 'she',Mrs. Reynolds,Mrs. Reynolds
+AlicesAdventuresInWonderland_352,Both_Fail,Alice,Hare | The Dormouse | Alice | The Hatter,"That's very curious! But
+everything's curious today. I think I may as well go in at once.",she thought,No,she,None,None,The Hatter,353.0,11.0,1. Reference: Coreference and Aliasing,,pronoun,Nearby,High,Yes,Pronoun 'she',The Hatter,The Hatter
+AlicesAdventuresInWonderland_97,Explicit_Present_But_Fail,Alice,Old Magpie | Alice | A Canary | The White Rabbit | The Lory,"Oh, you foolish Alice! How can you learn
+lessons in here? Why, there's hardly room for _you_, and no room at all
+for any lesson-books!",she answered herself,Yes,she,None,answered,Alice,98.0,20.0,1. Reference: Coreference and Aliasing,,pronoun,Nearby,High,Yes,Pronoun 'she',Old Magpie,Old Magpie
+DaisyMiller_423,GBM_Only,Daisy Miller,Mrs. Walker | Mrs. Miller | Mr. Giovanelli | Daisy Miller | Winterbourne,Is there anyone I know?,she asked,No,she,None,asked,Mrs. Walker,424.0,9.0,1. Reference: Coreference and Aliasing,,pronoun,Nearby,High,Yes,Pronoun 'she',Mrs. Miller,Daisy Miller
+PrideAndPrejudice_850,GBM_Only,Mr. Gardiner,Mrs. Gardiner | Elizabeth | Mr. Darcy | Mr. Gardiner | Mrs. Reynolds,"I was never more surprised than by his behaviour to us. It was more
+than civil; it was really attentive; and there was no necessity for such
+attention. His acquaintance with Elizabeth was very trifling.",nan,Yes,None,None,None,Mr. Gardiner,851.0,3.0,2. Discourse: Speaker Continuity,,dialogue tag absent,Nearby,High,Yes,Turn continuation,Mrs. Reynolds,Mr. Gardiner
+PrideAndPrejudice_576,GBM_Only,Charlotte Lucas,Sir William Lucas | Mrs. Gardiner | Elizabeth | Charlotte Lucas | Maria | Mrs. Bennet,"My father and Maria are to come to me in March, and
+I hope you will consent to be of the party. Indeed, Eliza, you will be
+as welcome to me as either of them.",added Charlotte,No,None,Charlotte,added,Elizabeth,577.0,15.0,1. Reference: Coreference and Aliasing,,alias,Local,High,Yes,Alias 'Charlotte' vs 'Charlotte Lucas',Mrs. Gardiner,Charlotte Lucas
+PrideAndPrejudice_907,Explicit_Present_But_Fail,Mary,Kitty | Mrs. Gardiner | Elizabeth | Mr. Gardiner | Mary | Jane | Mrs. Bennet,"This is a most unfortunate affair; and will probably be much talked of.
+But we must stem the tide of malice, and pour into the wounded bosoms of
+each other, the balm of sisterly consolation.",she was mistress enough of herself to whisper to Elizabeth,Yes,she,Elizabeth,None,Mr. Gardiner,908.0,58.0,1. Reference: Coreference and Aliasing,3. Pragmatics: Speaker–Addressee Semantics,pronoun,Nearby,High,Yes,Pronoun 'she' whispering to Elizabeth,Mr. Gardiner,Mr. Gardiner
+AlicesAdventuresInWonderland_677,Both_Fail,The King Of Hearts,"Hare | The Queen | Alice | The King Of Hearts | Two | The White Rabbit | Bill, The Lizard | Five | Seven | The Gryphon | The Knave Of Hearts","That's the most important piece of evidence we've heard yet, so now let the jury--",said the King,No,None,King,said,The White Rabbit,678.0,13.0,1. Reference: Coreference and Aliasing,,alias,Local,High,Yes,Alias 'the King',The White Rabbit,The White Rabbit
+PrideAndPrejudice_577,Both_Fail,Mrs. Gardiner,George Wickham | Mrs. Gardiner | Elizabeth | Charlotte Lucas | Miss King | Mrs. Bennet,"But, my dear Elizabeth, what sort of girl is Miss King? I
+should be sorry to think our friend mercenary.",she added,No,she,None,added,Charlotte Lucas,578.0,9.0,3. Pragmatics: Speaker–Addressee Semantics,1. Reference: Coreference and Aliasing,explicit addressee,Local,High,No,Addresses 'my dear Elizabeth',Charlotte Lucas,Charlotte Lucas
+AlicesAdventuresInWonderland_655,Explicit_Present_But_Fail,Alice,The King Of Hearts | The White Rabbit | Alice,"but it doesn't matter a bit,",she thought to herself,Yes,she,None,None,The King Of Hearts,656.0,22.0,1. Reference: Coreference and Aliasing,,pronoun,Nearby,High,Yes,Pronoun 'she',The King Of Hearts,The King Of Hearts
+PrideAndPrejudice_1101,Both_Fail,Jane,Kitty | Mr. Bennet | Mr. Bingley | Elizabeth | Mary | Jane | Mrs. Bennet,"I hope not so. Imprudence or thoughtlessness in money matters, would be
+unpardonable in _me_.",nan,No,None,None,None,Mr. Bennet,1102.0,3.0,2. Discourse: Speaker Continuity,,dialogue tag absent,Nearby,High,Yes,Turn continuation,Mr. Bingley,Mr. Bingley
+AlicesAdventuresInWonderland_457,Both_Fail,Alice,The Mock Turtle | The Queen | Alice | The King Of Hearts | The Gryphon,What is his sorrow?,she asked the Gryphon,No,she,Gryphon,asked,The Gryphon,458.0,21.0,1. Reference: Coreference and Aliasing,,pronoun,Nearby,High,Yes,Pronoun 'she',The Gryphon,The Gryphon
+PrideAndPrejudice_18,GBM_Only,Mrs. Bennet,Kitty | Lady Lucas | Mr. Bennet | Sir William Lucas | Elizabeth | Lydia | Mary | Jane | Mrs. Bennet,"But consider your daughters. Only think what an establishment it would
+be for one of them. Sir William and Lady Lucas are determined to go,
+merely on that account, for in general you know they visit no new
+comers. Indeed you must go, for it will be impossible for _us_ to visit
+him, if you do not.",nan,Yes,None,None,None,Mrs. Bennet,19.0,3.0,3. Pragmatics: Speaker–Addressee Semantics,2. Discourse: Speaker Continuity,explicit addressee,Nearby,High,No,Addresses 'your daughters',Lady Lucas,Mrs. Bennet
+DaisyMiller_514,Explicit_Present_But_Fail,Mr. Giovanelli,Mr. Giovanelli | Daisy Miller | Winterbourne,"Let us hope he is not very hungry, He will have to take me first; you will serve for dessert!",responded the ingenious Giovanelli,Yes,None,Giovanelli,None,Daisy Miller,515.0,34.0,1. Reference: Coreference and Aliasing,,alias,Local,High,Yes,Alias 'Giovanelli' vs 'Mr. Giovanelli',Daisy Miller,Daisy Miller
+PrideAndPrejudice_653,Both_Fail,Mr. Darcy,Elizabeth | Mr. Darcy | Colonel Fitzwilliam | Lady Catherine De Bourgh,Perfectly so--I thank you.,nan,No,None,None,None,Lady Catherine De Bourgh,654.0,3.0,2. Discourse: Speaker Continuity,,dialogue tag absent,Nearby,High,Yes,Turn continuation,Lady Catherine De Bourgh,Lady Catherine De Bourgh
+PrideAndPrejudice_1033,Both_Fail,Mrs. Bennet,George Wickham | Kitty | Jane | Mr. Bennet | Elizabeth | Mary | Lydia | Mrs. Bennet,"Oh! my dear Lydia, when shall we meet again?",she cried,No,she,None,cried,George Wickham,1034.0,9.0,3. Pragmatics: Speaker–Addressee Semantics,1. Reference: Coreference and Aliasing,explicit addressee,Local,High,No,Addresses 'my dear Lydia',Elizabeth,Elizabeth
+PrideAndPrejudice_446,GBM_Only,Mr. Collins,Mr. Collins | Miss Bingley | Elizabeth | Mr. Darcy | Charlotte Lucas | Jane,"My dear Miss Elizabeth, I have the highest opinion in the world of your
+excellent judgment in all matters within the scope of your
+understanding, but permit me to say that there must be a wide difference
+between the established forms of ceremony amongst the laity, and those
+which regulate the clergy; for give me leave to observe that I consider
+the clerical office as equal in point of dignity with the highest rank
+in the kingdom--provided that a proper humility of behaviour is at the
+same time maintained. You must therefore allow me to follow the dictates
+of my conscience on this occasion, which leads me to perform what I look
+on as a point of duty. Pardon me for neglecting to profit by your
+advice, which on every other subject shall be my constant guide, though
+in the case before us I consider myself more fitted by education and
+habitual study to decide on what is right than a young lady like
+yourself.",Mr Collins listened to her with the determined air of following his own inclination and when she ceased speaking replied thus,Yes,"her, she, his","Mr, Collins",replied,Elizabeth,447.0,125.0,1. Reference: Coreference and Aliasing,,alias,Local,High,Yes,'Mr Collins' punctuation,Miss Bingley,Mr. Collins
+PrideAndPrejudice_1120,Both_Fail,Mrs. Bennet,Elizabeth | Jane | Lady Catherine De Bourgh | Mrs. Bennet,"Go, my dear, and shew her ladyship about the
+different walks. I think she will be pleased with the hermitage.",cried her mother,No,her,None,cried,Lady Catherine De Bourgh,1121.0,16.0,1. Reference: Coreference and Aliasing,,alias,Nearby,High,Yes,'her mother',Jane,Jane
+PrideAndPrejudice_1041,GBM_Only,Mrs. Bennet,George Wickham | Mrs. Philips | Mr. Bingley | Mr. Bennet | Elizabeth | Lydia | Jane | Mrs. Bennet,"Well, well, and so Mr. Bingley is coming down, sister,",nan,No,None,None,None,Elizabeth,1042.0,3.0,3. Pragmatics: Speaker–Addressee Semantics,2. Discourse: Speaker Continuity,explicit addressee,Nearby,High,No,Addresses 'sister',George Wickham,Mrs. Bennet
+AlicesAdventuresInWonderland_394,Explicit_Present_But_Fail,Alice,The Queen | The Cat | The White Rabbit | Alice,"It's the Cheshire Cat: now I shall have somebody to talk
+to.",she said to herself,Yes,she,None,said,The Queen,395.0,19.0,1. Reference: Coreference and Aliasing,,pronoun,Nearby,High,Yes,Pronoun 'she',The Queen,The Queen
+AlicesAdventuresInWonderland_596,Both_Fail,The King Of Hearts,"Hare | The Queen | Alice | The King Of Hearts | Two | The White Rabbit | Bill, The Lizard | The Hatter | The Dormouse | Five | Seven | The Gryphon | The Knave Of Hearts","Take off your hat,",the King said to the Hatter,No,None,"King, Hatter",said,The Dormouse,597.0,27.0,1. Reference: Coreference and Aliasing,,alias,Local,High,Yes,Alias 'the King',The Hatter,The Hatter
+PrideAndPrejudice_584,GBM_Only,Elizabeth,Mrs. Gardiner | Elizabeth | Charlotte Lucas | Miss King | Mrs. Bennet,"A man in distressed circumstances has not time for all those elegant
+decorums which other people may observe. If _she_ does not object to it,
+why should _we_?",nan,Yes,None,None,None,Elizabeth,585.0,3.0,2. Discourse: Speaker Continuity,,dialogue tag absent,Nearby,High,Yes,Turn continuation,Charlotte Lucas,Elizabeth
+DaisyMiller_248,GBM_Only,Daisy Miller,Eugenio | Daisy Miller | Mrs. Miller | Winterbourne,"Pray do, and I ll carry round your hat. It will pay the expenses of our
+journey.",nan,Yes,None,None,None,Daisy Miller,249.0,3.0,2. Discourse: Speaker Continuity,,dialogue tag absent,Nearby,High,Yes,Turn continuation,Eugenio,Daisy Miller
+AlicesAdventuresInWonderland_66,Both_Fail,Alice,Old Magpie | Alice | The Mouse | A Canary | The Duck | An Old Crab | The Lory | The Young Crab | The Dodo | The Eaglet,"Only a thimble,",nan,No,None,None,None,The Dodo,67.0,3.0,2. Discourse: Speaker Continuity,,dialogue tag absent,Nearby,High,Yes,Turn continuation,The Dodo,The Dodo
+PrideAndPrejudice_319,GBM_Only,Mr. Bennet,Kitty | Jane | Mr. Collins | Mr. Bennet | Miss Bingley | Elizabeth | Mr. Darcy | Mary | Lydia | Mrs. Bennet,"About a month ago I received this letter, and about a fortnight ago I
+answered it, for I thought it a case of some delicacy, and requiring
+early attention. It is from my cousin, Mr. Collins, who, when I am dead,
+may turn you all out of this house as soon as he pleases.",he thus explained,No,he,None,None,Mrs. Bennet,320.0,17.0,1. Reference: Coreference and Aliasing,,pronoun,Nearby,High,Yes,Pronoun 'he',Mr. Collins,Mr. Bennet
+PrideAndPrejudice_1252,Both_Fail,Mr. Darcy,Elizabeth | Mr. Darcy | Mrs. Bennet | Mr. Bennet,"I cannot fix on the hour, or the spot, or the look, or the words, which
+laid the foundation. It is too long ago. I was in the middle before I
+knew that I _had_ begun.",nan,No,None,None,None,Mr. Bennet,1253.0,3.0,2. Discourse: Speaker Continuity,,dialogue tag absent,Nearby,High,Yes,Turn continuation,Mr. Bennet,Mr. Bennet
+DaisyMiller_326,Explicit_Present_But_Fail,Mrs. Miller,Mrs. Walker | Randolph | Mrs. Miller | Daisy Miller | Winterbourne,"I
+guess we ll go back to the hotel,",she said,Yes,she,None,said,Mrs. Walker,327.0,8.0,1. Reference: Coreference and Aliasing,,pronoun,Nearby,High,Yes,Pronoun 'she',Mrs. Walker,Mrs. Walker
+PrideAndPrejudice_58,Both_Fail,Mrs. Bennet,Maria | Kitty | Jane | Mr. Bennet | Mr. Bingley | Elizabeth | Mr. Darcy | Charlotte Lucas | Mary | Lydia | Mrs. Bennet,"we have had a most
+delightful evening, a most excellent ball. I wish you had been there.
+Jane was so admired, nothing could be like it. Every body said how well
+she looked; and Mr. Bingley thought her quite beautiful, and danced with
+her twice. Only think of _that_ my dear; he actually danced with her
+twice; and she was the only creature in the room that he asked a second
+time. First of all, he asked Miss Lucas. I was so vexed to see him stand up with her; but, however, he did not admire her at all: indeed, nobody
+can, you know; and he seemed quite struck with Jane as she was going
+down the dance. So, he enquired who she was, and got introduced, and
+asked her for the two next. Then, the two third he danced with Miss
+King, and the two fourth with Maria Lucas, and the two fifth with Jane
+again, and the two sixth with Lizzy, and the Boulanger----",nan,No,None,None,None,Mr. Darcy,59.0,3.0,3. Pragmatics: Speaker–Addressee Semantics,2. Discourse: Speaker Continuity,topic continuation,Conversation,High,No,Discusses Jane and Bingley familiarly,Mr. Darcy,Mr. Darcy
+AlicesAdventuresInWonderland_182,Explicit_Present_But_Fail,Alice,The Pigeon | Alice,"Come, there's half my plan
+done now! How puzzling all these changes are! I'm never sure what I'm
+going to be, from one minute to another! However, I've got back to my
+right size: the next thing is, to get into that beautiful garden--how
+_is_ that to be done, I wonder?",got used to it in a few minutes and began talking to herself,Yes,None,None,None,Alice,183.0,60.0,2. Discourse: Speaker Continuity,1. Reference: Coreference and Aliasing,topic continuation,Nearby,High,Yes,Implicit subject in context tag,The Pigeon,The Pigeon
+PrideAndPrejudice_151,Both_Fail,Mrs. Bennet,Mr. Bennet | Elizabeth | Lydia | Jane | Mrs. Bennet,"This was a lucky idea of mine, indeed!",said Mrs Bennet,No,None,"Mrs, Bennet",said,Mr. Bennet,152.0,15.0,1. Reference: Coreference and Aliasing,,alias,Local,High,Yes,'Mrs Bennet',Mr. Bennet,Mr. Bennet
+DaisyMiller_98,Both_Fail,Winterbourne,Eugenio | Randolph | Mrs. Costello | Mrs. Miller | Daisy Miller | Winterbourne,"I am afraid you don t approve of them,",he said,No,he,None,said,Daisy Miller,99.0,7.0,1. Reference: Coreference and Aliasing,,pronoun,Nearby,High,Yes,Pronoun 'he',Eugenio,Eugenio
+PrideAndPrejudice_1113,Both_Fail,Mrs. Bennet,Kitty | Mr. Bennet | Mr. Bingley | Lady Catherine De Bourgh | Elizabeth | Lydia | Jane | Mrs. Bennet,"Yes, madam, She is my youngest girl but one. My youngest of all, is lately married,
+and my eldest is somewhere about the grounds, walking with a young man,
+who I believe will soon become a part of the family.",said Mrs Bennet,No,None,"Mrs, Bennet",said,Lady Catherine De Bourgh,1114.0,15.0,1. Reference: Coreference and Aliasing,,alias,Local,High,Yes,'Mrs Bennet',Kitty,Kitty
+AlicesAdventuresInWonderland_667,Both_Fail,The King Of Hearts,"Hare | The Queen | Alice | The King Of Hearts | Two | The White Rabbit | Bill, The Lizard | Five | Seven | The Gryphon | The Knave Of Hearts","It must have been that, unless it was written to
+nobody, which isn't usual, you know.",said the King,No,None,King,said,The Queen,668.0,13.0,1. Reference: Coreference and Aliasing,,alias,Local,High,Yes,'the King',Hare,The White Rabbit
+PrideAndPrejudice_366,GBM_Only,George Wickham,Elizabeth | Mr. Darcy | George Wickham | The Late Mr. Darcy,"A thorough, determined dislike of me--a dislike which I cannot but
+attribute in some measure to jealousy. Had the late Mr. Darcy liked me
+less, his son might have borne with me better; but his father's uncommon
+attachment to me, irritated him I believe very early in life. He had not
+a temper to bear the sort of competition in which we stood--the sort of
+preference which was often given me.",nan,Yes,None,None,None,George Wickham,367.0,3.0,2. Discourse: Speaker Continuity,,topic continuation,Nearby,High,Yes,Continuing narrative thread,The Late Mr. Darcy,George Wickham
+PrideAndPrejudice_498,Both_Fail,Elizabeth,George Wickham | Mr. Collins | Mr. Bingley | Mr. Bennet | Miss Bingley | Elizabeth | Lydia | Jane | Mrs. Bennet,It is only evident that Miss Bingley does not mean he _should_.,nan,No,None,None,None,Jane,499.0,3.0,2. Discourse: Speaker Continuity,,dialogue tag absent,Nearby,High,Yes,Turn continuation,George Wickham,George Wickham
+AlicesAdventuresInWonderland_122,Explicit_Present_But_Fail,Alice,Bill | Pat | The White Rabbit | Alice,"I'll put a stop to
+this,",she said to herself,Yes,she,None,said,The White Rabbit,123.0,19.0,1. Reference: Coreference and Aliasing,,pronoun,Nearby,High,Yes,Pronoun 'she',The White Rabbit,The White Rabbit
+AlicesAdventuresInWonderland_661,Both_Fail,The King Of Hearts,"Hare | The Queen | Alice | The King Of Hearts | Two | The White Rabbit | Bill, The Lizard | Five | Seven | The Gryphon | The Knave Of Hearts","It's the oldest rule in the book,",said the King,No,None,King,said,The Queen,662.0,13.0,1. Reference: Coreference and Aliasing,,alias,Local,High,Yes,'the King',Hare,Alice
+PrideAndPrejudice_1018,GBM_Only,Elizabeth,George Wickham | Miss Darcy | Mrs. Gardiner | Elizabeth | Mr. Darcy | Mr. Gardiner | Lydia,Yes; he introduced us to his sister.,nan,Yes,None,None,None,Elizabeth,1019.0,3.0,2. Discourse: Speaker Continuity,,dialogue tag absent,Nearby,High,Yes,Turn continuation,Mr. Darcy,Elizabeth
+PrideAndPrejudice_838,Both_Fail,Mrs. Gardiner,George Wickham | Mrs. Gardiner | Elizabeth | Mr. Darcy | Mr. Gardiner | Mrs. Reynolds,"This fine account of him, is not
+quite consistent with his behaviour to our poor friend.",whispered her aunt,No,her,None,whispered,Mrs. Reynolds,839.0,18.0,1. Reference: Coreference and Aliasing,,alias,Nearby,High,Yes,'her aunt',Mrs. Reynolds,Mrs. Reynolds
+PrideAndPrejudice_1255,GBM_Only,Elizabeth,Elizabeth | Mr. Darcy | Mr. Bennet | Mrs. Bennet,"You may as well call it impertinence at once. It was very little less.
+The fact is, that you were sick of civility, of deference, of officious
+attention. You were disgusted with the women who were always speaking
+and looking, and thinking for _your_ approbation alone. I roused, and
+interested you, because I was so unlike _them_. Had you not been really
+amiable you would have hated me for it; but in spite of the pains you
+took to disguise yourself, your feelings were always noble and just; and
+in your heart, you thoroughly despised the persons who so assiduously
+courted you. There--I have saved you the trouble of acc",nan,Yes,None,None,None,Elizabeth,1256.0,3.0,2. Discourse: Speaker Continuity,,dialogue tag absent,Nearby,High,Yes,Turn continuation,Mr. Bennet,Elizabeth

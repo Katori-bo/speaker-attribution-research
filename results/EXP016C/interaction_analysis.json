@@ -1,0 +1,8 @@
+{
+  "tf_accuracy": "0.8060",
+  "fa_accuracy": "0.6546",
+  "os_accuracy": "0.6924",
+  "ros_accuracy": "0.7977",
+  "additive_prediction": "0.6840",
+  "interaction_gap_pp": "2.94"
+}

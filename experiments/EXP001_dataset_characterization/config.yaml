@@ -1,0 +1,5 @@
+# Experiment configuration
+# Use this as a base for individual experiments
+experiment_name: "TEMPLATE"
+seed: 42
+model: "baseline"

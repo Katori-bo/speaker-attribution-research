@@ -1,0 +1,5 @@
+Rule,Applicable,Fired,Fired_Correct,Precision,Won,Won_Correct,Contribution
+Explicit Attribution,33801,3333,3141,94.24%,3333,3141,94.24%
+Dialogue Alternation,37075,31605,21626,68.43%,28793,19924,69.20%
+Previous Speaker,37103,37103,5474,14.75%,4978,1638,32.90%
+Nearest Mention,36783,36783,215,0.58%,26,0,0.00%

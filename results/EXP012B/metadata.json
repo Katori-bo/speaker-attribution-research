@@ -1,0 +1,24 @@
+{
+  "experiment_id": "EXP012B",
+  "status": "COMPLETED",
+  "conclusion": "ACCEPT",
+  "metrics": {
+    "overall_baseline_accuracy": 0.8021,
+    "overall_exp_accuracy": 0.8072,
+    "delta": 0.0052,
+    "type_a_failures": 254,
+    "type_b_failures": 36,
+    "recovered_quotes": 59,
+    "regressions": 46,
+    "unchanged_success": 1972,
+    "unchanged_failures": 244
+  },
+  "artifacts": [
+    "mapping_report.csv",
+    "evaluation.csv",
+    "prediction_changes.csv",
+    "oracle_analysis.csv",
+    "STATUS.md",
+    "final_report.md"
+  ]
+}

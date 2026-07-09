@@ -1,0 +1,14 @@
+{
+  "stage": "EXP012A.3",
+  "name": "Semantic Feature Extraction",
+  "status": "COMPLETED",
+  "frozen_components": [
+    "src/coreference/features.py",
+    "tests/test_semantic_features.py",
+    "scripts/generate_feature_statistics.py"
+  ],
+  "artifacts": [
+    "STATUS.md",
+    "feature_dictionary.md"
+  ]
+}

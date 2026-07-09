@@ -1,0 +1,27 @@
+{
+    "explicit_eval": {
+        "total_quotes": 1130,
+        "evaluated_quotes": 1129,
+        "skipped_gold_not_in_candidates": 109,
+        "candidate_recall": 90.34543844109831,
+        "candidate_restricted_accuracy": 41.96078431372549,
+        "random_accuracy": 24.705882352941178,
+        "frequency_accuracy": 39.01960784313726,
+        "tfidf_top1": 41.96078431372549,
+        "tfidf_top3": 85.58823529411764,
+        "tfidf_mrr": 0.6388846093993165
+    },
+    "implicit_eval": {
+        "total_quotes": 763,
+        "evaluated_quotes": 763,
+        "skipped_gold_not_in_candidates": 18,
+        "candidate_recall": 97.64089121887287,
+        "candidate_restricted_accuracy": 32.21476510067114,
+        "random_accuracy": 20.536912751677853,
+        "frequency_accuracy": 35.16778523489933,
+        "tfidf_top1": 32.21476510067114,
+        "tfidf_top3": 78.9261744966443,
+        "tfidf_mrr": 0.5690311068498975
+    },
+    "characters_with_fingerprints": 63
+}

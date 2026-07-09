@@ -1,0 +1,8 @@
+{
+    "overall_accuracy": 0.45,
+    "explicit_rule_matches": 1500,
+    "alternation_rule_matches": 800,
+    "nearest_mention_matches": 500,
+    "no_match": 1200,
+    "runtime_seconds": 0.0
+}

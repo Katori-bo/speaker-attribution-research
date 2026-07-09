@@ -1,0 +1,7 @@
+Mode,Accuracy
+confidence_gated_0.70,0.6518
+confidence_gated_0.80,0.6359
+confidence_gated_0.85,0.6479
+confidence_gated_0.90,0.6451
+confidence_gated_0.95,0.6431
+soft_state,0.6510

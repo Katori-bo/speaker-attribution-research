@@ -1,0 +1,14 @@
+{
+  "stage": "EXP012A.0",
+  "name": "Data Source Validation",
+  "status": "COMPLETED",
+  "dependencies": {
+    "booknlp": "1.0.8",
+    "spacy": "3.5.3",
+    "torch": "2.12.1"
+  },
+  "artifacts": [
+    "validation_report.md",
+    "STATUS.md"
+  ]
+}

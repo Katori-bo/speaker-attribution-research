@@ -1,0 +1,13 @@
+K,reason,count,percentage
+3,candidate_missing,2,66.7%
+3,not_evaluated,1,N/A
+3,beam_pruned,1,33.3%
+5,candidate_missing,2,66.7%
+5,not_evaluated,1,N/A
+5,beam_pruned,1,33.3%
+10,candidate_missing,2,66.7%
+10,not_evaluated,1,N/A
+10,beam_pruned,1,33.3%
+20,candidate_missing,2,66.7%
+20,not_evaluated,1,N/A
+20,beam_pruned,1,33.3%

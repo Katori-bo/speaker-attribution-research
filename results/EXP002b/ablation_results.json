@@ -1,0 +1,47 @@
+[
+    {
+        "variant": "V0_Baseline",
+        "runtime_seconds": 1.4324228763580322,
+        "recall": 0.8829010799601411,
+        "avg_set_size": 3.6456599606797555,
+        "efficiency": 0.24217866983829145,
+        "rare_recall": 0.44494047619047616,
+        "freq_recall": 0.8909734222002798
+    },
+    {
+        "variant": "V1_Alias",
+        "runtime_seconds": 1.4908466339111328,
+        "recall": 0.883170396703563,
+        "avg_set_size": 3.8303035199698363,
+        "efficiency": 0.23057452029559214,
+        "rare_recall": 0.44494047619047616,
+        "freq_recall": 0.891247702899147
+    },
+    {
+        "variant": "V2_Window15",
+        "runtime_seconds": 1.4087646007537842,
+        "recall": 0.9276076593681829,
+        "avg_set_size": 4.335245482211629,
+        "efficiency": 0.21396888899932906,
+        "rare_recall": 0.49404761904761907,
+        "freq_recall": 0.9355988919059766
+    },
+    {
+        "variant": "V3_Window30",
+        "runtime_seconds": 1.4354712963104248,
+        "recall": 0.942339285233363,
+        "avg_set_size": 5.203037892865799,
+        "efficiency": 0.18111328509166952,
+        "rare_recall": 0.5014880952380952,
+        "freq_recall": 0.95046490578458
+    },
+    {
+        "variant": "V4_Alias_Window15",
+        "runtime_seconds": 1.4612147808074951,
+        "recall": 0.9277423177398939,
+        "avg_set_size": 4.541730629393229,
+        "efficiency": 0.2042706609977526,
+        "rare_recall": 0.49404761904761907,
+        "freq_recall": 0.9357360322554101
+    }
+]

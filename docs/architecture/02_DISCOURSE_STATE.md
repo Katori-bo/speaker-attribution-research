@@ -50,19 +50,13 @@ Conversation Length
 
 ---
 
-## Future Context Components
+## Evolution and Freeze (ADR-005)
 
-Future experiments may introduce additional context.
+Following the results of EXP011, the explicit discourse-state architecture is **frozen**. 
 
-Possible additions include:
+Experiments demonstrated a performance plateau: adding richer state components (such as dialogue turn history or conversation continuity) failed to resolve the dominant residual errors. 
 
-* Active character weights
-* Dialogue turn history
-* Local paragraph context
-* Mention recency
-* Conversation continuity
-
-No component should be added without experimental evidence.
+Future architectural evolution will focus on **minimal semantic representations** (e.g., deterministic coreference) rather than expanding this explicit state cache.
 
 ---
 

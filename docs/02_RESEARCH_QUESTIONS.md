@@ -9,3 +9,4 @@ Can lightweight contextual representations recover most of the performance of mu
 - Does candidate ranking outperform direct classification?
 - When do additional contextual features stop helping?
 - Does an LLM teacher improve a strong lightweight baseline?
+- **RQ4 (Phase 4):** Which lightweight semantic representations provide genuinely new contextual information beyond explicit discourse-state representations, and which residual reasoning capabilities do they recover?

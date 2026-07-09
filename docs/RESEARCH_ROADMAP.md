@@ -32,160 +32,206 @@ Proceed to Phase 2 regardless of outcome. Phase 1 results become the floor for a
 
 ---
 
-## Phase 2 — External Baseline (BookNLP)
+## Phase 2A — Feature Representation
 
 **Current Question:**
-How does an established system perform on PDNC, and what are its failure patterns?
+How can we extract contextual information into a fixed schema suitable for candidate ranking without leaking future information?
 
-**Possible Outcomes:**
-
-* **BookNLP performs well (>80% accuracy):** Sets a high bar. The student model must demonstrate competitive performance or offer clear advantages in efficiency and interpretability.
-* **BookNLP performs moderately (50–80%):** Indicates significant room for improvement through better contextual representation.
-* **BookNLP performs poorly (<50%):** Suggests that speaker attribution in literary text is fundamentally harder than in other domains, which strengthens the motivation for the project.
+**Deliverable:**
+A reproducible dataset of `(quote, candidate)` pairs with extracted features categorized into Lexical, Candidate, Discourse, Conversation, and Symbolic families.
 
 **Next Experiment:**
-Phase 3a — Base candidate ranking model.
-
-**Alternative Path:**
-If BookNLP fails catastrophically, investigate whether PDNC annotations themselves have quality issues before proceeding.
+EXP004A — Feature Audit.
 
 **Decision Criteria:**
-Proceed to Phase 3 regardless. BookNLP results define the external comparison point.
+Proceed to EXP004A once dataset generation is deterministic and passes leakage tests.
 
 ---
 
-## Phase 3a — Base Candidate Ranking
+## EXP004A — Feature Audit
 
 **Current Question:**
-Can candidate ranking with local context alone outperform heuristic baselines?
+Are the extracted features numerically stable, well-distributed, and free of trivial bugs?
 
-**Possible Outcomes:**
+**Deliverable:**
+A comprehensive `feature_summary.csv` analyzing variance, missingness, and label correlation for every feature.
 
-* **Significant improvement over heuristics:** Validates the candidate ranking formulation. Proceed to add contextual components.
-* **Marginal improvement:** The ranking model may need better feature representation. Consider whether local context features are sufficient before adding state.
-* **No improvement:** Reconsider the feature set or model architecture before adding complexity.
-
-**Next Experiment:**
-Phase 3b — Add speaker memory.
-
-**Alternative Path:**
-If ranking fails to improve over heuristics, perform error analysis to determine whether the issue is feature quality or model capacity before proceeding.
+**Next Action:**
+Freeze Feature Schema (ADR004).
 
 **Decision Criteria:**
-Proceed to Phase 3b if the ranking model demonstrates any measurable improvement over heuristics. If not, conduct error analysis first.
+If bugs or malformed features are found, fix them and regenerate. Once the audit is clean, freeze the schema and proceed to EXP004B.
 
 ---
 
-## Phase 3b — Speaker Memory
+## EXP004B — Logistic Regression Evaluation
 
 **Current Question:**
-Does tracking the last speaker and previous speaker improve attribution accuracy?
+Does the representation itself contain predictive signal beyond symbolic heuristics when evaluated with a simple linear model?
 
 **Possible Outcomes:**
-
-* **Clear improvement:** Speaker memory is valuable. Confirms hypothesis H6.
-* **Improvement only on conversational dialogue:** Speaker memory helps in conversations but not in isolated quotes. This is an expected and informative result.
-* **No improvement:** Speaker memory may be redundant with local context features. Proceed to Phase 3c to test alternative context.
+* **Significant improvement over heuristics:** Validates the representation.
+* **No improvement:** Suggests the representation is insufficient, or non-linear interactions are strictly required.
 
 **Next Experiment:**
-Phase 3c — Active character representation.
-
-**Alternative Path:**
-None. Proceed to Phase 3c regardless.
+EXP004C — Feature Family Ablations.
 
 **Decision Criteria:**
-Record the marginal gain. Proceed to Phase 3c.
+Proceed to EXP004C regardless of accuracy, as the ablation will explain the model's behavior.
 
 ---
 
-## Phase 3c — Active Character Representation
+## EXP004C — Feature Family Ablations
 
 **Current Question:**
-Does tracking which characters are active improve attribution accuracy?
+Which contextual feature families (Lexical, Candidate, Discourse, Conversation) contribute the most to the model's accuracy?
 
-**Possible Outcomes:**
-
-* **Clear improvement:** Active character tracking provides complementary information to speaker memory.
-* **Improvement only when speaker memory fails:** Active characters help in non-conversational contexts. This is a valuable finding.
-* **No improvement:** Active character tracking may be redundant. Proceed to Phase 3d.
+**Deliverable:**
+An ablation study quantifying the performance drop when each feature family is removed.
 
 **Next Experiment:**
-Phase 3d — Recent mention representation.
-
-**Alternative Path:**
-None. Proceed to Phase 3d regardless.
+Phase 2D — Lightweight Neural Models (Optional).
 
 **Decision Criteria:**
-Record the marginal gain. Proceed to Phase 3d.
+If the linear model performs well and ablations are interpretable, proceed to test if Neural Models (Phase 2D) can capture non-linear interactions. If the linear model fails completely, conduct deep error analysis.
+
+## EXP004D — Symbolic Feature Investigation
+
+**Current Question:**
+Why did ablating the Symbolic feature family improve linear baseline accuracy? 
+
+**Deliverable:**
+An investigation evaluating competing hypotheses: (H1) Multicollinearity, (H2) Redundant information, (H3) Noisy rules, (H4) Excessively coarse binary encoding. Creates a direct bridge by comparing symbolic rules against continuous candidate features.
+
+**Next Experiment:**
+EXP005 — Representation Analysis.
+
+**Decision Criteria:**
+Proceed to EXP005 once the degradation is understood.
 
 ---
 
-## Phase 3d — Recent Mention Representation
+## EXP005 — Representation Analysis
 
 **Current Question:**
-Does tracking recent character mentions, distances, and frequencies improve attribution accuracy?
+Which individual contextual signals are indispensable, which are redundant, and how well-calibrated is the representation?
 
-**Possible Outcomes:**
-
-* **Clear improvement:** Mention patterns provide information not captured by speaker memory or active characters.
-* **Marginal improvement:** Diminishing returns confirm that a saturation point exists.
-* **No improvement:** The discourse state has reached sufficient complexity. Additional context is unnecessary.
+**Deliverable:**
+- Coefficient Analysis (Coefficients, Standard Errors, 95% CIs, p-values).
+- Single-Feature Ablations.
+- Representation Sufficiency Curve (forward feature selection).
+- Calibration Metrics (ROC-AUC, PR-AUC, Brier Score, ECE, Reliability Diagrams).
 
 **Next Experiment:**
-Phase 3e — Error analysis.
-
-**Alternative Path:**
-None. Phase 3e is mandatory.
+EXP006 — Feature Redundancy & Interaction.
 
 **Decision Criteria:**
-Record the marginal gain. Proceed to error analysis.
+Proceed to EXP006 once the individual contribution of all features is statistically quantified.
 
 ---
 
-## Phase 3e — Error Analysis
+## EXP006 — Contextual Redundancy Analysis
 
 **Current Question:**
-What categories of errors remain after the full discourse state model?
+Are the remaining contextual features redundant, or do they contain complementary information masked by the linear model?
 
-**Possible Outcomes:**
-
-* **Errors concentrated in implicit quotes:** Suggests that the model lacks sufficient linguistic features for difficult cases. Phase 4 (LLM teacher) may address this.
-* **Errors concentrated in long-range attribution:** Suggests that the discourse state window is too narrow. Consider extending context before moving to Phase 4.
-* **Errors distributed uniformly:** Suggests a fundamental model capacity limitation rather than a missing feature.
+**Deliverable:**
+Four targeted sub-experiments:
+- **A. Correlation Structure:** Phi, Point-biserial, and Pearson matrices.
+- **B. Conditional Importance:** $\Delta$ Accuracy, $\Delta$ ROC-AUC, $\Delta$ ECE, and $\Delta$ Log Loss when adding individual features to the Top 3.
+- **C. Residual Error Taxonomy:** Categorization of residual failure modes.
+- **D. Interaction Test:** Hypothesis-driven tests (e.g., Previous Speaker × Context Length).
+- **E. Stability Analysis:** Forward and Backward cross-validated feature selection.
 
 **Next Experiment:**
-Phase 4a — Teacher evaluation (if justified) or Phase 5 — Final evaluation.
-
-**Alternative Path:**
-If error analysis reveals a specific missing feature, a targeted Phase 3f experiment may be warranted before proceeding to Phase 4.
+EXP007 — Per-Novel Generalization.
 
 **Decision Criteria:**
-If error analysis identifies categories that an LLM might address, proceed to Phase 4. Otherwise, proceed directly to Phase 5.
+Proceed to EXP007 once redundancy and failure modes are mapped.
 
 ---
 
-## Phase 4 — LLM Extension (Optional)
+## EXP007 — Per-Novel Generalization
 
 **Current Question:**
-Does LLM teacher supervision provide measurable additional value?
+Does the "3-feature sufficiency" hypothesis hold across individual novels, or do novels with larger casts/complexity require richer representations?
 
-**Possible Outcomes:**
-
-* **Measurable improvement:** Quantify exactly what the teacher contributes and at what cost.
-* **No improvement:** Document this as a positive finding — the lightweight model is sufficient.
+**Deliverable:**
+Novel-level $\Delta$ Accuracy (Top 3 vs Full) plotted against cast size and dialogue complexity.
 
 **Next Experiment:**
-Phase 5 — Final evaluation.
+Decision Gate.
 
 **Decision Criteria:**
-Proceed to Phase 5 regardless of outcome.
+If EXP006 uncovers useful non-linear interactions OR EXP007 shows the minimal representation failing on complex novels, proceed to EXP009. Otherwise, proceed to EXP008 (Nonlinear Sanity Check).
+
+---
+
+## EXP008 — Nonlinear Sanity Check
+
+**Current Question:**
+Does a lightweight nonlinear learner (HistGradientBoosting) extract meaningful additional predictive signal from the current explicit representation compared to a linear model?
+
+**Deliverable:**
+Comparison of Accuracy, ROC-AUC, PR-AUC, Log Loss, and ECE between Logistic Regression and HistGradientBoosting (untuned). Permutation importance analysis if the nonlinear model succeeds.
+
+**Next Experiment:**
+EXP009 — Understanding Nonlinear Gain.
+
+**Decision Criteria:**
+EXP008 triggered Outcome B: HistGBM provided a massive gain in PR-AUC. Proceed to EXP009 to dissect this gain before moving to Phase 4.
+
+---
+
+## EXP009 — Understanding Nonlinear Gain
+
+**Current Question:**
+Why does HistGradientBoosting improve ranking quality (PR-AUC) significantly while providing only a modest gain in top-1 accuracy?
+
+**Deliverable:**
+Four targeted analyses:
+- **A. Prediction Comparison:** Taxonomy of `GBM Only` successes vs `LR Only` successes.
+- **B. Ranking Metrics:** MRR, Mean Rank, Recall@1, Recall@3.
+- **C. Residual Taxonomy:** Did the nonlinear model solve pronoun/scene errors, or just calibrate better?
+- **D. Interaction Interpretation:** 2D Partial Dependence Plots for `previous_speaker` × `context_length`.
+
+**Next Experiment:**
+Stage 3A (Semantic Error Taxonomy).
+
+**Decision Criteria:**
+Phase 2 is considered complete based on the evidence from EXP006–EXP009. The next research direction is Phase 3: Semantic Context Representations.
+
+---
+
+## Phase 3 — Semantic Context Representations
+
+**Current Question:**
+Which semantic phenomena account for the residual errors left by explicit contextual representations, and what is the minimal semantic representation required to recover them?
+
+### Stage 3A: EXP010 Semantic Error Taxonomy
+- **H10:** Residual errors cluster into a small number of recurring semantic phenomena rather than forming an unstructured set.
+- **Methodology:** Stratified sampling (100 Both Fail, 50 GBM Only, 50 Explicit Present + Fail) and open coding.
+- **Acceptance:** A stable taxonomy where every residual error is assigned exactly one primary semantic category.
+
+### Stage 3B: Representation Design (Decision Gate)
+- **Constraint:** No semantic representation may be implemented until the design has been justified using the EXP010 taxonomy.
+- **Methodology:** Map taxonomy phenomena to Representation Families (e.g., Sentence, Contextual Token, Paragraph) paired with heuristic baselines.
+
+### Stage 3C: EXP011 Semantic Audit & EXP012 Frozen Features
+- **H11:** Semantic representations contain complementary information and do not duplicate explicit features.
+- **H12:** Different representation families preferentially recover different semantic phenomena.
+- **Acceptance:** Deterministic extraction, zero leakage. Reporting recovery rate per phenomenon and computational cost.
+
+### Stage 3D: EXP013 Semantic Sufficiency
+- **H13:** Only a small amount of semantic information is required before performance reaches a new plateau.
+- **Methodology:** Explicit + Semantic Sufficiency Curve, followed by an "Error Overlap" final analysis.
 
 ---
 
 ## Phase 5 — Final Evaluation
 
 **Current Question:**
-Which contextual representations contributed most to accurate speaker attribution?
+How does the final pipeline perform on a held-out literary dataset?
 
 **Deliverable:**
 Complete scientific evaluation answering all research questions.
@@ -194,29 +240,41 @@ This phase produces conclusions, not new experiments.
 
 ---
 
-## Summary
-
-The roadmap follows a strict evidence-driven progression:
+## Roadmap Summary
 
 ```
-Heuristic Baseline
-        ↓
-External Baseline
-        ↓
-Base Ranking Model
-        ↓
-+ Speaker Memory
-        ↓
-+ Active Characters
-        ↓
-+ Recent Mentions
-        ↓
-Error Analysis → Decision Point
-        ↓                  ↓
-LLM Extension      Final Evaluation
-        ↓
-Final Evaluation
-```
+ Heuristic Baseline
+         ↓
+ Feature Representation (Phase 2A)
+         ↓
+ Feature Audit (EXP004A)
+         ↓
+ Logistic Regression (EXP004B)
+         ↓
+ Feature Ablations (EXP004C)
+         ↓
+ Symbolic Investigation (EXP004D)
+         ↓
+ Representation Analysis (EXP005)
+         ↓
+ Contextual Redundancy (EXP006)
+         ↓
+ Per-Novel Generalization (EXP007)
+         ↓
+ Decision Gate
+         ↓
+ Nonlinear Sanity Check (EXP008)
+         ↓
+ Understanding Nonlinear Gain (EXP009)
+         ↓
+ Semantic Error Taxonomy (EXP010)
+         ↓
+ Semantic Audit & Evaluation (EXP011 & EXP012)
+         ↓
+ Semantic Sufficiency Curve (EXP013)
+         ↓
+ Final Evaluation (Phase 5)
+ ```
 
 Every transition between phases depends on the outcome of the previous phase.
 

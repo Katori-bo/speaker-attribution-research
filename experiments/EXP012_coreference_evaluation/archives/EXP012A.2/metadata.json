@@ -1,0 +1,16 @@
+{
+  "stage": "EXP012A.2",
+  "name": "Representation Validation",
+  "status": "COMPLETED",
+  "frozen_components": [
+    "src/coreference/validation.py",
+    "src/coreference/alignment.py",
+    "scripts/validate_representation.py",
+    "tests/test_coreference_validation.py",
+    "tests/test_coreference_alignment.py"
+  ],
+  "artifacts": [
+    "STATUS.md",
+    "representation_statistics.md"
+  ]
+}

@@ -1,0 +1,6 @@
+System,Accuracy,Delta
+BookNLP (Coverage 92.2%),0.7154,
+Top-3 context,0.7723,
++ nonlinear model,0.8021,0.0298
++ coreference,0.8072,0.0052
++ attribution,0.8092,0.0020

@@ -1,0 +1,8 @@
+{
+    "candidate_recall": 0.0,
+    "avg_candidate_set_size": 0.0,
+    "median_candidate_set_size": 0.0,
+    "p95_candidate_set_size": 0.0,
+    "max_candidate_set_size": 0,
+    "runtime_seconds": 0.0002
+}

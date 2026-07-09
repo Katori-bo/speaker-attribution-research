@@ -140,6 +140,26 @@ Speaker memory produces a larger accuracy gain than active characters or recent 
 **Failure Criteria:**
 Another contextual signal provides a larger individual gain, suggesting that speaker memory is less important than expected for literary text.
 
+## H7 — Feature Necessity
+
+**Statement:**
+A small subset of explicit contextual features explains most of the improvement over the symbolic baseline.
+
+**Motivation:**
+We seek to understand not just whether representations work, but *which* ones matter. This tests whether a few strong signals dominate the task.
+
+**Expected Outcome:**
+During feature ablation, removing specific feature families (e.g., Conversation features) causes significant accuracy drops, while removing others causes negligible change.
+
+**Validation Experiment:**
+Phase 2C Feature Family Ablations on the logistic regression baseline.
+
+**Success Criteria:**
+Ablation results demonstrate a highly skewed distribution of feature importance across families.
+
+**Failure Criteria:**
+All features contribute equally in small amounts, implying the task relies on a dense, uninterpretable representation rather than discrete discourse signals.
+
 ---
 
 ## Usage

@@ -1,0 +1,7 @@
+{
+  "anchor_events": 247,
+  "state_drifted_at_anchor": 49,
+  "state_correct_at_anchor": 198,
+  "state_resets_applied": 8,
+  "drifted_that_would_reset": 33
+}

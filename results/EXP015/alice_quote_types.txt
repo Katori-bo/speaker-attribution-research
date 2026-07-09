@@ -1,0 +1,4 @@
+Explicit named      498
+Explicit pronoun    136
+Explicit nominal      9
+Name: count, dtype: int64

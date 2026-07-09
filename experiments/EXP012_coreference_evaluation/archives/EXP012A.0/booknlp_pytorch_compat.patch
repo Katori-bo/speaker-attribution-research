@@ -1,0 +1,32 @@
+--- .venv/lib/python3.14/site-packages/booknlp/english/entity_tagger.py	2026-07-02 10:00:00.000000000 +0000
++++ .venv/lib/python3.14/site-packages/booknlp/english/entity_tagger.py	2026-07-02 10:08:11.000000000 +0000
+@@ -19,7 +19,7 @@
+ 		self.model = Tagger(freeze_bert=False, base_model=base_model, tagset_flat={"EVENT":1, "O":1}, supersense_tagset=self.supersense_tagset, tagset=self.tagset, device=device)
+ 
+ 		self.model.to(device)
+-		self.model.load_state_dict(torch.load(model_file, map_location=device))
++		self.model.load_state_dict(torch.load(model_file, map_location=device), strict=False)
+ 		wnsFile = pkg_resources.resource_filename(__name__, "data/wordnet.first.sense")
+ 		self.wns=self.read_wn(wnsFile)
+ 
+--- .venv/lib/python3.14/site-packages/booknlp/english/litbank_coref.py	2026-07-02 10:00:00.000000000 +0000
++++ .venv/lib/python3.14/site-packages/booknlp/english/litbank_coref.py	2026-07-02 10:08:17.000000000 +0000
+@@ -16,7 +16,7 @@
+ 		base_model=re.sub(".model", "", base_model)
+ 
+ 		self.model = BERTCorefTagger(gender_cats=gender_cats, freeze_bert=True, base_model=base_model, pronominalCorefOnly=pronominalCorefOnly)
+-		self.model.load_state_dict(torch.load(modelFile, map_location=device))
++		self.model.load_state_dict(torch.load(modelFile, map_location=device), strict=False)
+ 		self.model.to(device)
+ 		self.model.eval()
+ 
+--- .venv/lib/python3.14/site-packages/booknlp/english/bert_qa.py	2026-07-02 10:00:00.000000000 +0000
++++ .venv/lib/python3.14/site-packages/booknlp/english/bert_qa.py	2026-07-02 10:08:25.000000000 +0000
+@@ -17,7 +17,7 @@
+ 		base_model=re.sub(".model", "", base_model)
+ 
+ 		self.model = BERTSpeakerID(base_model=base_model)
+-		self.model.load_state_dict(torch.load(modelFile, map_location=device))
++		self.model.load_state_dict(torch.load(modelFile, map_location=device), strict=False)
+ 		self.model.to(device)
+ 		self.model.eval()

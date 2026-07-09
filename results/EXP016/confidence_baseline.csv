@@ -1,0 +1,4 @@
+Mode,Mean_Confidence_Correct,Mean_Confidence_Wrong,Calibration_Gap_pp,N_Correct,N_Wrong
+teacher_forced,0.9504,0.6916,25.9,2028,488
+one_step_autoregressive,0.9409,0.7955,14.5,1742,774
+fully_autoregressive,0.9387,0.7728,16.6,1647,869

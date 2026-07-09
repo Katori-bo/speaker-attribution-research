@@ -1,0 +1,14 @@
+{
+  "stage": "EXP012A.1",
+  "name": "Annotation Import",
+  "status": "COMPLETED",
+  "frozen_components": [
+    "src/coreference/schemas.py",
+    "src/coreference/parser.py",
+    "src/coreference/mapping.py",
+    "tests/test_coreference_parser.py"
+  ],
+  "artifacts": [
+    "STATUS.md"
+  ]
+}

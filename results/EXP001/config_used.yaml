@@ -1,0 +1,9 @@
+# Default experiment settings
+seed: 42
+batch_size: 16
+learning_rate: 0.001
+epochs: 10
+
+# Model settings
+max_context_length: 512
+embedding_dim: 768

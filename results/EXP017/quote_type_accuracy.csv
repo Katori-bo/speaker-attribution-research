@@ -1,0 +1,7 @@
+Mode,Explicit Named,Explicit Named_N,Explicit Named_Recovered,Explicit Named_Regressed,Explicit Named_Net,Explicit Nominal,Explicit Nominal_N,Explicit Nominal_Recovered,Explicit Nominal_Regressed,Explicit Nominal_Net,Anaphoric,Anaphoric_N,Anaphoric_Recovered,Anaphoric_Regressed,Anaphoric_Net,Implicit,Implicit_N,Implicit_Recovered,Implicit_Regressed,Implicit_Net
+confidence_gated_0.70,0.7632,1119,13,21,-8,0.2000,10,0,0,0,0.5256,624,36,33,3,0.5976,763,83,85,-2
+confidence_gated_0.80,0.7596,1119,13,25,-12,0.2000,10,0,0,0,0.5192,624,39,40,-1,0.5557,763,77,111,-34
+confidence_gated_0.85,0.7650,1119,13,19,-6,0.2000,10,0,0,0,0.5128,624,42,47,-5,0.5924,763,87,93,-6
+confidence_gated_0.90,0.7676,1119,16,19,-3,0.2000,10,0,0,0,0.5096,624,40,47,-7,0.5819,763,83,97,-14
+confidence_gated_0.95,0.7730,1119,24,21,3,0.2000,10,0,0,0,0.5240,624,55,53,2,0.5557,763,89,123,-34
+soft_state,0.7676,1119,3,6,-3,0.3000,10,1,0,1,0.5192,624,9,10,-1,0.5924,763,6,12,-6

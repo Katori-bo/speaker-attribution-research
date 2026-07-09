@@ -1,0 +1,4 @@
+Mode,Accuracy
+teacher_forced,0.8060
+one_step_autoregressive,0.6924
+fully_autoregressive,0.6546
