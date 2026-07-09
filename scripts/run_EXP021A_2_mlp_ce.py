@@ -263,21 +263,24 @@ def main():
     # Compute Significance
     logger.info("Computing Bootstrapped Confidence Intervals...")
     acc_fn = lambda x: (x['pred_rank'] == 1).mean()
-    imp_acc_fn = lambda x: (x[x['quote_type'] == 'Implicit']['pred_rank'] == 1).mean() if len(x[x['quote_type'] == 'Implicit']) > 0 else 0
+    imp_acc_fn = lambda x: (x[x['quote_type'] == 'Implicit']['pred_rank'] == 1).mean()
+    ana_acc_fn = lambda x: (x[x['quote_type'] == 'Anaphoric']['pred_rank'] == 1).mean()
     mrr_fn = lambda x: (1.0 / x['pred_rank']).mean()
     
-    acc_ci = bootstrap_ci(mlp_preds, acc_fn)
-    imp_acc_ci = bootstrap_ci(mlp_preds, imp_acc_fn)
-    mrr_ci = bootstrap_ci(mlp_preds, mrr_fn)
+    acc_ci = bootstrap_ci(preds_df, acc_fn)
+    imp_acc_ci = bootstrap_ci(preds_df, imp_acc_fn)
+    ana_acc_ci = bootstrap_ci(preds_df, ana_acc_fn)
+    mrr_ci = bootstrap_ci(preds_df, mrr_fn)
     
-    p_value = mcnemar_test(mlp_preds, histgbm_preds)
+    p_value = mcnemar_test(preds_df, histgbm_preds)
     
     report = ["# EXP021A.2 Ranking MLP (CrossEntropy) Results\n"]
-    report.append(f"**Overall Accuracy**: {mlp_metrics['Accuracy']*100:.2f}% (95% CI: {acc_ci[0]*100:.2f}% - {acc_ci[1]*100:.2f}%)")
-    report.append(f"**Implicit Accuracy**: {mlp_metrics['Implicit_Accuracy']*100:.2f}% (95% CI: {imp_acc_ci[0]*100:.2f}% - {imp_acc_ci[1]*100:.2f}%)")
-    report.append(f"**MRR**: {mlp_metrics['MRR']:.4f} (95% CI: {mrr_ci[0]:.4f} - {mrr_ci[1]:.4f})")
-    report.append(f"**Recall@3**: {mlp_metrics['Recall@3']*100:.2f}%")
-    report.append(f"**LogLoss (CrossEntropy)**: {mlp_metrics['LogLoss']:.4f}\n")
+    report.append(f"**Overall Accuracy**: {metrics['Accuracy']*100:.2f}% (95% CI: {acc_ci[0]*100:.2f}% - {acc_ci[1]*100:.2f}%)")
+    report.append(f"**Implicit Accuracy**: {metrics['Implicit_Accuracy']*100:.2f}% (95% CI: {imp_acc_ci[0]*100:.2f}% - {imp_acc_ci[1]*100:.2f}%)")
+    report.append(f"**Anaphoric Accuracy**: {metrics['Anaphoric_Accuracy']*100:.2f}% (95% CI: {ana_acc_ci[0]*100:.2f}% - {ana_acc_ci[1]*100:.2f}%)")
+    report.append(f"**MRR**: {metrics['MRR']:.4f} (95% CI: {mrr_ci[0]:.4f} - {mrr_ci[1]:.4f})")
+    report.append(f"**Recall@3**: {metrics['Recall@3']*100:.2f}%")
+    report.append(f"**LogLoss (CrossEntropy)**: {metrics['LogLoss']:.4f}\n")
     
     report.append("## Statistical Significance (vs HistGBM AR)")
     hist_acc = (histgbm_preds['pred_rank'] == 1).mean()
