@@ -254,6 +254,7 @@ def main():
     else:
         report.append(f"Outcome 2: Major finding. MLP AR retains a large gain (> +5 pp) even without gold-state leakage (Diff: {diff:+.2f}%). Unexpected robustness to corrupted state. Investigate before moving to GRU.")
 
+    os.makedirs("results/EXP021A_1", exist_ok=True)
     with open("results/EXP021A_1/audit_report.md", "w") as f:
         f.write("\n".join(report))
         
