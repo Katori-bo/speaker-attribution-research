@@ -140,8 +140,19 @@ def main():
     train_df = df[df['split'] == 'train'].copy()
     test_df = df[df['split'] == 'test'].copy()
     
+    mutable_discourse_features = [
+        'candidate_is_last_speaker',
+        'candidate_is_previous_speaker',
+        'candidate_in_participant_stack',
+        'candidate_stack_depth',
+        'conversation_speaker_change',
+        'conv_active_id',
+        'conv_interruption_distance'
+    ]
+    state_free_cols = [c for c in feature_cols if c not in mutable_discourse_features]
+    
     scaler = StandardScaler()
-    scaler.fit(train_df[feature_cols].values)
+    scaler.fit(train_df[state_free_cols].values)
     
     logger.info("Building Sequence Datasets (state_free)...")
     train_seq = TensorSequenceDataset(train_df, feature_cols, feature_mode='state_free', vocab=vocab, scaler=scaler)
