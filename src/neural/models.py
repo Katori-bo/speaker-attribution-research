@@ -95,7 +95,99 @@ class SpeakerGRU(nn.Module):
             h = self.gru_cell(spk_emb, h)
             
         scores_stacked = torch.stack(all_scores, dim=0)
-        return scores_stacked.unsqueeze(0) # [1, seq_len, max_cand]
+        return scores_stacked.unsqueeze(0)
+
+class EntityAnchoredRelationalGRU(nn.Module):
+    def __init__(self, feature_dim: int, vocab_size: int, emb_dim: int = 32, hidden_dim: int = 64):
+        super().__init__()
+        self.hidden_dim = hidden_dim
+        self.emb_dim = emb_dim
+        
+        self.char_emb = nn.Embedding(vocab_size, emb_dim)
+        
+        self.candidate_encoder = nn.Sequential(
+            nn.Linear(feature_dim + emb_dim, hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, hidden_dim)
+        )
+        
+        self.gru_cell = nn.GRUCell(hidden_dim, hidden_dim)
+        
+        self.scorer = nn.Sequential(
+            nn.Linear(hidden_dim + hidden_dim + 1, hidden_dim // 2),
+            nn.ReLU(),
+            nn.Linear(hidden_dim // 2, 1)
+        )
+        
+    def forward(self, candidate_features, candidate_ids, candidate_mask, 
+                gold_index_for_update=None, ablate_memory=False, ablate_shuffle=False, 
+                ablate_similarity=False, ablate_anchor_instability=False):
+        if candidate_features.dim() == 4:
+            candidate_features = candidate_features.squeeze(0)
+            candidate_ids = candidate_ids.squeeze(0)
+            candidate_mask = candidate_mask.squeeze(0)
+            if gold_index_for_update is not None:
+                gold_index_for_update = gold_index_for_update.squeeze(0)
+                
+        seq_len, max_cand, _ = candidate_features.shape
+        device = candidate_features.device
+        
+        h = torch.zeros(1, self.hidden_dim, device=device)
+        all_scores = []
+        all_sims = []
+        
+        cids_working = candidate_ids.clone()
+        if ablate_anchor_instability:
+            for t in range(seq_len):
+                mask_t = candidate_mask[t]
+                num_valid = mask_t.sum().item()
+                if num_valid > 1:
+                    valid_ids = cids_working[t, mask_t]
+                    shuffled_valid_ids = valid_ids[torch.randperm(num_valid)]
+                    cids_working[t, mask_t] = shuffled_valid_ids
+        
+        for t in range(seq_len):
+            if ablate_memory:
+                h = torch.zeros(1, self.hidden_dim, device=device)
+                
+            feats_t = candidate_features[t]
+            mask_t = candidate_mask[t]
+            cids_t = cids_working[t]
+            
+            cand_embs = self.char_emb(cids_t)
+            cand_inputs = torch.cat([feats_t, cand_embs], dim=-1)
+            cand_vecs = self.candidate_encoder(cand_inputs)
+            
+            h_expanded = h.expand(max_cand, -1)
+            
+            sim = torch.nn.functional.cosine_similarity(cand_vecs, h_expanded, dim=-1).unsqueeze(-1)
+            if ablate_similarity:
+                sim = torch.zeros_like(sim)
+                
+            x = torch.cat([cand_vecs, h_expanded, sim], dim=-1)
+            scores_t = self.scorer(x).squeeze(-1)
+            scores_t = scores_t.masked_fill(~mask_t, float('-inf'))
+            all_scores.append(scores_t)
+            all_sims.append(sim)
+            
+            if gold_index_for_update is not None:
+                spk_idx = gold_index_for_update[t].item()
+            else:
+                spk_idx = torch.argmax(scores_t).item()
+                
+            if ablate_shuffle:
+                num_valid = mask_t.sum().item()
+                if num_valid > 0:
+                    spk_idx = torch.randint(0, num_valid, (1,)).item()
+                else:
+                    spk_idx = 0
+                    
+            spk_vec = cand_vecs[spk_idx].unsqueeze(0)
+            h = self.gru_cell(spk_vec, h)
+            
+        scores_stacked = torch.stack(all_scores, dim=0).unsqueeze(0)
+        sims_stacked = torch.stack(all_sims, dim=0).unsqueeze(0)
+        return scores_stacked, sims_stacked # [1, seq_len, max_cand]
 
 class RelationalSpeakerGRU(nn.Module):
     def __init__(self, feature_dim: int, hidden_dim: int = 64):
@@ -129,6 +221,7 @@ class RelationalSpeakerGRU(nn.Module):
         
         h = torch.zeros(1, self.hidden_dim, device=device)
         all_scores = []
+        all_sims = []
         
         for t in range(seq_len):
             if ablate_memory:
@@ -143,6 +236,7 @@ class RelationalSpeakerGRU(nn.Module):
             sim = torch.nn.functional.cosine_similarity(cand_vecs, h_expanded, dim=-1).unsqueeze(-1)
             if ablate_similarity:
                 sim = torch.zeros_like(sim)
+            all_sims.append(sim)
                 
             x = torch.cat([cand_vecs, h_expanded, sim], dim=-1)
             scores_t = self.scorer(x).squeeze(-1)
@@ -165,4 +259,5 @@ class RelationalSpeakerGRU(nn.Module):
             h = self.gru_cell(spk_vec, h)
             
         scores_stacked = torch.stack(all_scores, dim=0)
-        return scores_stacked.unsqueeze(0)
+        sims_stacked = torch.stack(all_sims, dim=0)
+        return scores_stacked.unsqueeze(0), sims_stacked.unsqueeze(0)
