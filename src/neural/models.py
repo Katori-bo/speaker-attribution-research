@@ -29,7 +29,7 @@ class SpeakerGRU(nn.Module):
         self.hidden_dim = hidden_dim
         
         self.candidate_encoder = nn.Sequential(
-            nn.Linear(feature_dim, hidden_dim),
+            nn.Linear(feature_dim + emb_dim, hidden_dim),
             nn.ReLU(),
             nn.Linear(hidden_dim, hidden_dim)
         )
@@ -63,7 +63,10 @@ class SpeakerGRU(nn.Module):
             cids_t = candidate_ids[t]
             mask_t = candidate_mask[t]
             
-            cand_vecs = self.candidate_encoder(feats_t)
+            cand_embs = self.char_emb(cids_t)
+            cand_inputs = torch.cat([feats_t, cand_embs], dim=-1)
+            cand_vecs = self.candidate_encoder(cand_inputs)
+            
             h_expanded = h.expand(max_cand, -1)
             x = torch.cat([cand_vecs, h_expanded], dim=-1)
             
