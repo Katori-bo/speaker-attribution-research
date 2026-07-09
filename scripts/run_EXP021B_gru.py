@@ -22,7 +22,7 @@ from scripts.run_EXP021A_2_mlp_ce import compute_metrics, bootstrap_ci
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-def evaluate_gru(model, dataloader, device, type_mappings, ablate_memory=False, ablate_feedback=False):
+def evaluate_gru(model, dataloader, device, type_mappings, ablate_memory=False, ablate_feedback=False, ablate_shuffle=False):
     model.eval()
     results = []
     
@@ -39,7 +39,8 @@ def evaluate_gru(model, dataloader, device, type_mappings, ablate_memory=False, 
                 features, cids, mask, 
                 speaker_ids_for_update=None, # Autoregressive
                 ablate_memory=ablate_memory,
-                ablate_feedback=ablate_feedback
+                ablate_feedback=ablate_feedback,
+                ablate_shuffle=ablate_shuffle
             ).squeeze(0) # [seq_len, max_cand]
             
             # gold_index is [1, seq_len] due to DataLoader batching
@@ -108,6 +109,7 @@ def main():
     scaler.fit(train_df[state_free_cols].values)
     
     logger.info("Building Sequence Datasets (state_free)...")
+    logger.info(f"Using {len(state_free_cols)} state-free features: {state_free_cols}")
     train_seq = TensorSequenceDataset(train_df, feature_cols, feature_mode='state_free', vocab=vocab, scaler=scaler)
     test_seq = TensorSequenceDataset(test_df, feature_cols, feature_mode='state_free', vocab=vocab, scaler=scaler)
     
@@ -195,6 +197,11 @@ def main():
     nofb_preds = evaluate_gru(model, test_loader, device, type_mappings, ablate_memory=False, ablate_feedback=True)
     nofb_metrics = compute_metrics(nofb_preds)
     
+    # 4. Ablation: Shuffled Speaker Feedback
+    logger.info("Running Ablation: Shuffled Speaker Feedback...")
+    shuffle_preds = evaluate_gru(model, test_loader, device, type_mappings, ablate_memory=False, ablate_feedback=False, ablate_shuffle=True)
+    shuffle_metrics = compute_metrics(shuffle_preds)
+    
     # Compute Significance
     logger.info("Computing Bootstrapped Confidence Intervals...")
     acc_fn = lambda x: (x['pred_rank'] == 1).mean()
@@ -263,6 +270,11 @@ def main():
     report.append(f"**Overall Accuracy**: {nofb_metrics['Accuracy']*100:.2f}%")
     report.append(f"**Implicit Accuracy**: {nofb_metrics['Implicit_Accuracy']*100:.2f}%")
     report.append(f"**Anaphoric Accuracy**: {nofb_metrics['Anaphoric_Accuracy']*100:.2f}%\n")
+    
+    report.append("## 4. Feedback Ablation (Shuffled speaker vectors)")
+    report.append(f"**Overall Accuracy**: {shuffle_metrics['Accuracy']*100:.2f}%")
+    report.append(f"**Implicit Accuracy**: {shuffle_metrics['Implicit_Accuracy']*100:.2f}%")
+    report.append(f"**Anaphoric Accuracy**: {shuffle_metrics['Anaphoric_Accuracy']*100:.2f}%\n")
     
     report.append("## Analysis")
     report.append(f"- McNemar p-value vs MLP CE Baseline: {p_value:.4e}")

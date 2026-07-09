@@ -41,7 +41,7 @@ class SpeakerGRU(nn.Module):
         )
         
     def forward(self, candidate_features, candidate_ids, candidate_mask, 
-                speaker_ids_for_update=None, ablate_memory=False, ablate_feedback=False):
+                speaker_ids_for_update=None, ablate_memory=False, ablate_feedback=False, ablate_shuffle=False):
         if candidate_features.dim() == 4:
             candidate_features = candidate_features.squeeze(0)
             candidate_ids = candidate_ids.squeeze(0)
@@ -71,7 +71,14 @@ class SpeakerGRU(nn.Module):
             scores_t = scores_t.masked_fill(~mask_t, float('-inf'))
             all_scores.append(scores_t)
             
-            if speaker_ids_for_update is not None:
+            if ablate_shuffle:
+                num_valid = mask_t.sum().item()
+                if num_valid > 0:
+                    rand_idx = torch.randint(0, num_valid, (1,)).item()
+                    spk_id = cids_t[rand_idx].unsqueeze(0)
+                else:
+                    spk_id = cids_t[0].unsqueeze(0)
+            elif speaker_ids_for_update is not None:
                 spk_id = speaker_ids_for_update[t].unsqueeze(0)
             else:
                 best_cand_idx = torch.argmax(scores_t)
