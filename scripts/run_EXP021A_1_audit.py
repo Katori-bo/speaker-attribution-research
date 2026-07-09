@@ -149,31 +149,33 @@ def main():
     mlp_wrapper = MLPPredictorWrapper(model_full, scaler_full, feature_cols, device)
     fa_mode = FullyAutoregressiveMode()
     ar_preds_df = run_evaluation(fa_mode, df, mlp_wrapper, feature_cols)
+    
+    assert set(ar_preds_df['quote_id']) == set(test_df['quote_id']), "run_evaluation leaked train quotes into AR evaluation!"
+    
     idx_max_ar = ar_preds_df.groupby('quote_id')['score'].idxmax()
     preds_mlp_ar = ar_preds_df.loc[idx_max_ar]
     
     # 4. Compare AR features against TF features
     logger.info("Comparing features...")
-    # ar_preds_df contains all candidates for all quotes in test_df
     # We merge on quote_id and candidate
     merged = test_df.merge(ar_preds_df, on=['quote_id', 'candidate'], suffixes=('_tf', '_ar'))
     
-    dynamic_features = [
-        'candidate_is_last_speaker', 'candidate_is_previous_speaker', 'candidate_is_recent_mention',
-        'discourse_dialogue_position', 'conversation_turn_index', 'conversation_length',
-        'conversation_speaker_change', 'conv_active_id', 'conv_interruption_distance',
-        'candidate_in_participant_stack', 'candidate_stack_depth'
-    ]
+    coverage = len(merged) / len(test_df)
+    assert coverage == 1.0, f"Merge coverage failed: {coverage*100:.2f}%"
     
     mismatch_rates = {}
-    for feat in dynamic_features:
+    for feat in feature_cols:
         if f"{feat}_tf" in merged.columns and f"{feat}_ar" in merged.columns:
-            mismatches = (merged[f"{feat}_tf"] != merged[f"{feat}_ar"]).sum()
-            mismatch_rates[feat] = mismatches / len(merged)
+            # Use np.isclose to ignore tiny float precision differences
+            mismatches = (~np.isclose(merged[f"{feat}_tf"], merged[f"{feat}_ar"], atol=1e-5)).sum()
+            if mismatches > 0:
+                mismatch_rates[feat] = mismatches / len(merged)
+                
+    leaked_features = list(mismatch_rates.keys())
             
     # 5. Train Ablated MLP
     logger.info("Training Ablated MLP...")
-    ablated_feature_cols = [c for c in feature_cols if c not in dynamic_features]
+    ablated_feature_cols = [c for c in feature_cols if c not in leaked_features]
     model_ablated, scaler_ablated = train_mlp(train_df, ablated_feature_cols, config, device, pos_weight)
     preds_mlp_ablated = eval_tf_mlp(test_df, ablated_feature_cols, model_ablated, scaler_ablated, device)
     
@@ -243,12 +245,14 @@ def main():
     mlp_ar_implicit = get_acc_by_type(preds_mlp_ar, 'Implicit')
     histgbm_ar_implicit = get_acc_by_type(preds_histgbm, 'Implicit')
     
-    if mlp_ar_implicit < 65:
-        report.append("Case C: MLP AR Implicit accuracy is extremely low. The MLP is rejected as a standalone model. We must proceed to implement GRU memory to regain performance.")
-    elif mlp_ar_implicit < histgbm_ar_implicit + 3:
-        report.append("Case A: MLP provides comparable or slightly better performance than HistGBM in true AR mode. The 77% TF result was indeed a hallucination of gold-state leakage. We will proceed to GRU.")
+    diff = mlp_ar_implicit - histgbm_ar_implicit
+    
+    if diff < 1.0:
+        report.append(f"Outcome 1: MLP provides no meaningful gain (< +1 pp) over HistGBM AR (Diff: {diff:+.2f}%). The neural classifier does not inherently solve state corruption. Proceed to EXP021B GRU.")
+    elif diff <= 5.0:
+        report.append(f"Outcome 1b: MLP provides a small gain over HistGBM (Diff: {diff:+.2f}%). Proceed to GRU to explicitly model state memory.")
     else:
-        report.append("Case B: MLP AR remains remarkably high even without gold-state leakage. This suggests HistGBM was bottlenecking on noisy AR states, and the neural model is highly robust. Further MLP optimization may be needed before jumping to GRU.")
+        report.append(f"Outcome 2: Major finding. MLP AR retains a large gain (> +5 pp) even without gold-state leakage (Diff: {diff:+.2f}%). Unexpected robustness to corrupted state. Investigate before moving to GRU.")
 
     with open("results/EXP021A_1/audit_report.md", "w") as f:
         f.write("\n".join(report))
