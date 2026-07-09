@@ -58,14 +58,27 @@ def main():
     pos_weight = torch.tensor([pos_weight_val], dtype=torch.float32).to(device)
     logger.info(f"Calculated training pos_weight: {pos_weight_val:.4f}")
     
-    # 3. Create datasets & dataloaders
-    train_dataset = SpeakerSequenceDataset(train_df, feature_cols)
-    test_dataset = SpeakerSequenceDataset(test_df, feature_cols)
+    # 3. Scale features and create datasets & dataloaders
+    from sklearn.preprocessing import StandardScaler
+    from torch.utils.data import TensorDataset, DataLoader
     
-    # MLP doesn't shuffle because sequence dataset parses novels in full, 
-    # but we can set shuffle=True to randomize the order of novels in training.
-    train_loader = get_dataloader(train_dataset, batch_size=1, shuffle=True)
-    test_loader = get_dataloader(test_dataset, batch_size=1, shuffle=False)
+    X_train = train_df[feature_cols].values
+    y_train = train_df['label'].values.astype(np.float32)
+    X_test = test_df[feature_cols].values
+    y_test = test_df['label'].values.astype(np.float32)
+    
+    logger.info("Scaling features...")
+    scaler = StandardScaler()
+    X_train_scaled = scaler.fit_transform(X_train)
+    X_test_scaled = scaler.transform(X_test)
+    
+    train_dataset = TensorDataset(torch.tensor(X_train_scaled, dtype=torch.float32),
+                                  torch.tensor(y_train, dtype=torch.float32).unsqueeze(1))
+    test_dataset = TensorDataset(torch.tensor(X_test_scaled, dtype=torch.float32))
+    
+    batch_size = config.get('batch_size', 32)
+    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
     
     # 4. Initialize model
     input_dim = len(feature_cols)
@@ -86,21 +99,9 @@ def main():
         model.train()
         total_loss = 0.0
         
-        for batch in train_loader:
-            novel_seq = batch[0]
-            
-            features_list = []
-            labels_list = []
-            for q in novel_seq.quotes:
-                for c in q.candidates:
-                    features_list.append(c.features)
-                    labels_list.append(float(c.is_gold))
-            
-            if not features_list:
-                continue
-                
-            features = torch.stack(features_list).to(device)
-            labels = torch.tensor(labels_list, dtype=torch.float32).unsqueeze(1).to(device)
+        for features, labels in train_loader:
+            features = features.to(device)
+            labels = labels.to(device)
             
             optimizer.zero_grad()
             logits = model(features)
@@ -116,29 +117,20 @@ def main():
     # 6. Evaluation
     logger.info("Evaluating on test set...")
     model.eval()
-    predictions = []
     
+    all_probs = []
     with torch.no_grad():
-        for batch in test_loader:
-            novel_seq = batch[0]
-            for q in novel_seq.quotes:
-                if not q.candidates:
-                    continue
-                feats = torch.stack([c.features for c in q.candidates]).to(device)
-                logits = model(feats).squeeze(1).cpu()
-                probs = torch.sigmoid(logits).numpy()
+        for (features,) in test_loader:
+            features = features.to(device)
+            logits = model(features).squeeze(1).cpu()
+            probs = torch.sigmoid(logits).numpy()
+            if probs.ndim == 0:  # In case batch_size=1
+                all_probs.append(float(probs))
+            else:
+                all_probs.extend(probs.tolist())
                 
-                for i, c in enumerate(q.candidates):
-                    predictions.append({
-                        "novel": novel_seq.novel_id,
-                        "quote_id": q.quote_id,
-                        "candidate": c.candidate_id,
-                        "score": float(probs[i]),
-                        "gold_speaker": q.gold_speaker,
-                        "split": "test"
-                    })
-                    
-    pred_df = pd.DataFrame(predictions)
+    pred_df = test_df[['novel', 'quote_id', 'candidate', 'gold_speaker', 'split']].copy()
+    pred_df['score'] = all_probs
     
     # Save predictions
     results_dir = Path("results/EXP021A")
