@@ -582,3 +582,175 @@ class NoMemoryEntityScorer(nn.Module):
         anchors_stacked = torch.stack(all_anchors, dim=0) 
         
         return scores_stacked.unsqueeze(0), anchors_stacked.unsqueeze(0)
+
+
+class EXP026BBilinearSpeakerGRUWithAuxiliary(nn.Module):
+    """
+    EXP026B Variant C & B2.
+    Scorer is s(c, h) = f(c) + c^T W h.
+    Also computes auxiliary scores for previous-speaker prediction: aux(c, h) = c^T W_aux h.
+    """
+    def __init__(self, feature_dim: int, hidden_dim: int = 64):
+        super().__init__()
+        self.hidden_dim = hidden_dim
+        self.feature_names = None
+
+        self.candidate_encoder = nn.Sequential(
+            nn.Linear(feature_dim, hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, hidden_dim)
+        )
+
+        self.gru_cell = nn.GRUCell(hidden_dim, hidden_dim)
+
+        self.candidate_score_branch = nn.Sequential(
+            nn.Linear(hidden_dim, hidden_dim // 2),
+            nn.ReLU(),
+            nn.Linear(hidden_dim // 2, 1)
+        )
+
+        self.bilinear_weight = nn.Parameter(torch.empty(hidden_dim, hidden_dim))
+        nn.init.xavier_uniform_(self.bilinear_weight)
+
+        self.aux_bilinear_weight = nn.Parameter(torch.empty(hidden_dim, hidden_dim))
+        nn.init.xavier_uniform_(self.aux_bilinear_weight)
+
+    def load_shared_state_dict(self, state_dict):
+        shared_state_dict = {k: v for k, v in state_dict.items() if "aux_bilinear" not in k}
+        self.load_state_dict(shared_state_dict, strict=False)
+
+    def encode_candidates(self, candidate_features: torch.Tensor) -> torch.Tensor:
+        return self.candidate_encoder(candidate_features)
+
+    def candidate_score(self, candidate_repr: torch.Tensor) -> torch.Tensor:
+        return self.candidate_score_branch(candidate_repr).squeeze(-1)
+
+    def interaction(self, candidate_repr: torch.Tensor, hidden: torch.Tensor) -> torch.Tensor:
+        if hidden.dim() == 1:
+            hidden = hidden.unsqueeze(0)
+        if hidden.shape[0] == 1 and candidate_repr.shape[0] != 1:
+            hidden = hidden.expand(candidate_repr.shape[0], -1)
+        wh = torch.matmul(hidden, self.bilinear_weight.t())
+        return (candidate_repr * wh).sum(dim=-1)
+
+    def score(self, candidate_repr: torch.Tensor, hidden: torch.Tensor) -> torch.Tensor:
+        return self.candidate_score(candidate_repr) + self.interaction(candidate_repr, hidden)
+
+    def aux_score(self, candidate_repr: torch.Tensor, hidden: torch.Tensor) -> torch.Tensor:
+        if hidden.dim() == 1:
+            hidden = hidden.unsqueeze(0)
+        if hidden.shape[0] == 1 and candidate_repr.shape[0] != 1:
+            hidden = hidden.expand(candidate_repr.shape[0], -1)
+        wh = torch.matmul(hidden, self.aux_bilinear_weight.t())
+        return (candidate_repr * wh).sum(dim=-1)
+
+    def forward(self, candidate_features, candidate_mask,
+                gold_index_for_update=None, ablate_memory=False, ablate_shuffle=False):
+        if candidate_features.dim() == 4:
+            candidate_features = candidate_features.squeeze(0)
+            candidate_mask = candidate_mask.squeeze(0)
+            if gold_index_for_update is not None:
+                gold_index_for_update = gold_index_for_update.squeeze(0)
+
+        seq_len, max_cand, _ = candidate_features.shape
+        device = candidate_features.device
+
+        h = torch.zeros(1, self.hidden_dim, device=device)
+        all_scores = []
+        all_interactions = []
+        all_aux_scores = []
+
+        for t in range(seq_len):
+            if ablate_memory:
+                h = torch.zeros(1, self.hidden_dim, device=device)
+
+            feats_t = candidate_features[t]
+            mask_t = candidate_mask[t]
+
+            cand_vecs = self.encode_candidates(feats_t)
+            h_expanded = h.expand(max_cand, -1)
+            interactions_t = self.interaction(cand_vecs, h_expanded)
+            scores_t = self.score(cand_vecs, h_expanded)
+            scores_t = scores_t.masked_fill(~mask_t, float('-inf'))
+
+            # Compute auxiliary score (cᵀ W_aux h) BEFORE h is updated with the current gold/predicted speaker
+            aux_scores_t = self.aux_score(cand_vecs, h_expanded)
+            aux_scores_t = aux_scores_t.masked_fill(~mask_t, float('-inf'))
+
+            all_scores.append(scores_t)
+            all_interactions.append(interactions_t.masked_fill(~mask_t, 0.0))
+            all_aux_scores.append(aux_scores_t)
+
+            if gold_index_for_update is not None:
+                spk_idx = gold_index_for_update[t].item()
+            else:
+                spk_idx = torch.argmax(scores_t).item()
+
+            if ablate_shuffle:
+                valid_indices = torch.nonzero(mask_t, as_tuple=False).flatten()
+                if len(valid_indices) > 0:
+                    spk_idx = valid_indices[torch.randint(0, len(valid_indices), (1,), device=device)].item()
+                else:
+                    spk_idx = 0
+
+            spk_vec = cand_vecs[spk_idx].unsqueeze(0)
+            h = self.gru_cell(spk_vec, h)
+
+        scores_stacked = torch.stack(all_scores, dim=0).unsqueeze(0)
+        interactions_stacked = torch.stack(all_interactions, dim=0).unsqueeze(0)
+        aux_scores_stacked = torch.stack(all_aux_scores, dim=0).unsqueeze(0)
+
+        return scores_stacked, interactions_stacked, aux_scores_stacked
+
+
+def compute_masked_previous_speaker_ce(aux_scores, candidate_ids, gold_speaker_id, mask):
+    """
+    Computes masked candidate-level cross-entropy loss for the auxiliary task.
+    aux_scores: [1, seq_len, max_candidates]
+    candidate_ids: [1, seq_len, max_candidates] or [seq_len, max_candidates]
+    gold_speaker_id: [1, seq_len] or [seq_len]
+    mask: [1, seq_len, max_candidates] or [seq_len, max_candidates]
+    """
+    if aux_scores.dim() == 3:
+        aux_scores = aux_scores.squeeze(0)
+    if candidate_ids.dim() == 3:
+        candidate_ids = candidate_ids.squeeze(0)
+    if gold_speaker_id.dim() == 2:
+        gold_speaker_id = gold_speaker_id.squeeze(0)
+    if mask.dim() == 3:
+        mask = mask.squeeze(0)
+
+    seq_len, max_cand = aux_scores.shape
+    device = aux_scores.device
+
+    loss_fn = nn.CrossEntropyLoss(reduction='none')
+    total_loss = torch.tensor(0.0, device=device)
+    valid_count = 0
+
+    for t in range(seq_len):
+        if t == 0:
+            continue
+        
+        prev_gold_spk = gold_speaker_id[t - 1].item()
+        if prev_gold_spk <= 0:
+            continue
+
+        cids_t = candidate_ids[t]
+        mask_t = mask[t]
+
+        # Check if previous gold speaker is present in current candidate set and valid
+        idx_matches = (cids_t == prev_gold_spk) & mask_t
+        matching_indices = torch.nonzero(idx_matches, as_tuple=False).flatten()
+
+        if len(matching_indices) == 1:
+            target_idx = matching_indices[0]
+            scores_t = aux_scores[t].unsqueeze(0) # [1, max_candidates]
+            target_t = target_idx.unsqueeze(0)    # [1]
+            
+            loss_t = loss_fn(scores_t, target_t)
+            total_loss += loss_t.squeeze(0)
+            valid_count += 1
+
+    if valid_count > 0:
+        return total_loss / valid_count
+    return torch.tensor(0.0, device=device)

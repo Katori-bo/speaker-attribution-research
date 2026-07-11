@@ -1,0 +1,69 @@
+{
+    "experiment_name": "EXP026A_bilinear_memory_interaction",
+    "stopping_rule": "Regardless of statistical significance, EXP026A is the final scorer-integration experiment for the current feature-only GRU architecture.",
+    "seeds": [
+        1,
+        2,
+        3,
+        4,
+        5
+    ],
+    "epochs": 10,
+    "learning_rate": 0.001,
+    "input_dim": 15,
+    "hidden_dim": 64,
+    "cpu_test_run": false,
+    "variants": [
+        "nomemory_candidate_only",
+        "gru_concatenative_current",
+        "gru_bilinear_interaction"
+    ],
+    "primary_variants": [
+        "nomemory_candidate_only",
+        "gru_concatenative_current",
+        "gru_bilinear_interaction"
+    ],
+    "parameter_matched_control_rule": "Add nomemory_parameter_matched only if gru_bilinear_interaction has more than 10% additional trainable parameters relative to nomemory_candidate_only.",
+    "ablation_modes": [
+        "normal",
+        "zero_state",
+        "shuffled_update",
+        "teacher_forced_eval_diagnostic"
+    ],
+    "feature_list": [
+        "candidate_in_quote_chain",
+        "candidate_is_attributed_speaker",
+        "candidate_is_explicit_mention",
+        "candidate_is_recent_mention",
+        "chain_recency",
+        "conversation_length",
+        "conversation_turn_index",
+        "discourse_context_length",
+        "discourse_dialogue_position",
+        "lexical_has_exclamation",
+        "lexical_has_question_mark",
+        "lexical_quote_length_chars",
+        "lexical_quote_length_tokens",
+        "nearest_coref_dist",
+        "recent_mention_count"
+    ],
+    "forbidden_feature_list": [
+        "candidate_in_participant_stack",
+        "candidate_is_last_speaker",
+        "candidate_is_previous_speaker",
+        "candidate_position_bucket",
+        "candidate_position_index",
+        "candidate_stack_depth",
+        "conv_active_id",
+        "conv_interruption_distance",
+        "conversation_speaker_change",
+        "quoteByteSpans",
+        "quote_end_byte",
+        "quote_start_byte",
+        "symbolic_alternation_rule_fired",
+        "symbolic_explicit_rule_fired"
+    ],
+    "no_auxiliary_loss": true,
+    "no_candidate_feature_dropout": true,
+    "no_alternate_interaction_scorers": true
+}

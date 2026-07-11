@@ -1,0 +1,21 @@
+{
+    "approved_features": [
+        "candidate_in_quote_chain",
+        "candidate_is_attributed_speaker",
+        "candidate_is_explicit_mention",
+        "candidate_is_recent_mention",
+        "chain_recency",
+        "conversation_length",
+        "conversation_turn_index",
+        "discourse_context_length",
+        "discourse_dialogue_position",
+        "lexical_has_exclamation",
+        "lexical_has_question_mark",
+        "lexical_quote_length_chars",
+        "lexical_quote_length_tokens",
+        "nearest_coref_dist",
+        "recent_mention_count"
+    ],
+    "forbidden_features_absent": true,
+    "stopping_rule": "Regardless of statistical significance, EXP026A is the final scorer-integration experiment for the current feature-only GRU architecture."
+}
