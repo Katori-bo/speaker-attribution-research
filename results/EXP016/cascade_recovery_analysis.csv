@@ -1,4 +1,0 @@
-Total Errors Initiating Cascades,Average Cascade Length,Max Cascade Length,Average Recovery Length,Max Recovery Length,Mode
-299,1.63,8,1.63,8,teacher_forced
-380,2.04,16,2.04,16,one_step_autoregressive
-406,2.14,19,2.14,19,fully_autoregressive

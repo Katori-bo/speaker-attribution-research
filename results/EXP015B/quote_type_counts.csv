@@ -1,5 +1,0 @@
-Quote Type,N,Accuracy,LogLoss,95% CI
-Explicit Named,1119,0.8418,0.1970,"[0.8204, 0.8632]"
-Explicit Nominal,10,0.3000,0.3785,"[0.0160, 0.5840]"
-Explicit Pronoun,624,0.6603,0.3222,"[0.6231, 0.6974]"
-Implicit,763,0.8899,0.1398,"[0.8677, 0.9121]"

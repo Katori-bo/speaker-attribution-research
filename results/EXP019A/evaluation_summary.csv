@@ -1,6 +1,0 @@
-System,Overall Accuracy,Implicit Accuracy,Explicit Accuracy
-EXP014 AR Baseline,65.46%,60.03%,76.53%
-EXP019A Gold Fingerprints (Ceiling),65.70%,58.98%,76.62%
-EXP019A Runtime Fingerprints (Real),65.18%,59.90%,76.26%
-EXP019A Frequency Shuffle (Control 0),65.18%,59.63%,76.17%
-EXP019A Identity Shuffle (Control 1),65.18%,59.90%,76.26%

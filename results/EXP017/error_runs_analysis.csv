@@ -1,7 +1,0 @@
-Total Error Runs,Average Run Length,Max Run Length,Average Recovery Length,Max Recovery Length,Mode
-440,1.99,15,1.99,15,confidence_gated_0.70
-444,2.06,19,2.07,19,confidence_gated_0.80
-433,2.05,15,2.05,15,confidence_gated_0.85
-445,2.01,15,2.01,15,confidence_gated_0.90
-433,2.07,25,2.08,25,confidence_gated_0.95
-403,2.18,19,2.18,19,soft_state

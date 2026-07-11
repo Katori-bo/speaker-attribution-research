@@ -1,7 +1,0 @@
-Mode,Mean_Confidence_Correct,Mean_Confidence_Wrong,Calibration_Gap_pp,N_Correct,N_Wrong
-confidence_gated_0.70,0.8816,0.6790,20.3,1640,876
-confidence_gated_0.80,0.8832,0.6746,20.9,1600,916
-confidence_gated_0.85,0.8836,0.6496,23.4,1630,886
-confidence_gated_0.90,0.8742,0.6363,23.8,1623,893
-confidence_gated_0.95,0.8632,0.6177,24.5,1618,898
-soft_state,0.9361,0.7703,16.6,1638,878

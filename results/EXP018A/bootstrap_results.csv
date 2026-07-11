@@ -1,5 +1,0 @@
-comparison,mean_delta,ci_low,ci_high,significant
-K3-K1,+0.48,-0.48,+1.47,false
-K5-K1,-0.00,-1.03,+1.07,false
-K10-K1,+0.00,-1.07,+1.07,false
-K20-K1,+0.20,-0.87,+1.31,false
