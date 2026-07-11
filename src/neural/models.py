@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import hashlib
 
 class CandidateMLP(nn.Module):
     def __init__(self, input_dim: int, hidden_dim: int = 128):
@@ -261,3 +262,116 @@ class RelationalSpeakerGRU(nn.Module):
         scores_stacked = torch.stack(all_scores, dim=0)
         sims_stacked = torch.stack(all_sims, dim=0)
         return scores_stacked.unsqueeze(0), sims_stacked.unsqueeze(0)
+
+class NoMemoryEntityScorer(nn.Module):
+    def __init__(self, feature_dim: int, vocab_size: int, emb_dim: int = 32, hidden_dim: int = 64, 
+                 anchor_mode: str = 'trainable_persistent', pretrained_emb=None):
+        super().__init__()
+        self.anchor_mode = anchor_mode
+        self.emb_dim = emb_dim
+        
+        self.char_emb = nn.Embedding(vocab_size, emb_dim, padding_idx=0)
+        
+        if pretrained_emb is not None:
+            self.char_emb.weight.data.copy_(pretrained_emb)
+            
+        if self.anchor_mode != 'trainable_persistent':
+            self.char_emb.weight.requires_grad = False
+            
+        if self.anchor_mode == 'constant':
+            self.constant_vector = nn.Parameter(torch.randn(1, emb_dim), requires_grad=False)
+            
+        self.pos_emb = nn.Embedding(200, emb_dim)
+        
+        if self.anchor_mode == 'shuffled_persistent':
+            gen = torch.Generator().manual_seed(42)
+            perm = torch.randperm(vocab_size - 1, generator=gen) + 1
+            mapping = torch.arange(vocab_size)
+            mapping[1:] = perm
+            self.register_buffer('shuffled_mapping', mapping)
+            
+        self.ephemeral_base_seed = 42
+        self.ephemeral_cache = {}
+        self.unstable_cache = {}
+        
+        scorer_input_dim = feature_dim if self.anchor_mode == 'no_anchor' else feature_dim + emb_dim
+            
+        self.scorer = nn.Sequential(
+            nn.Linear(scorer_input_dim, hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, hidden_dim // 2),
+            nn.ReLU(),
+            nn.Linear(hidden_dim // 2, 1)
+        )
+        
+    def forward(self, candidate_features, candidate_ids, candidate_mask, quote_ids=None):
+        if candidate_features.dim() == 4:
+            candidate_features = candidate_features.squeeze(0)
+            candidate_ids = candidate_ids.squeeze(0)
+            candidate_mask = candidate_mask.squeeze(0)
+            
+        seq_len, max_cand, _ = candidate_features.shape
+        device = candidate_features.device
+        
+        all_scores = []
+        all_anchors = []
+        
+        for t in range(seq_len):
+            feats_t = candidate_features[t]
+            cids_t = candidate_ids[t]
+            mask_t = candidate_mask[t]
+            
+            if self.anchor_mode == 'no_anchor':
+                anchor_t = None
+            elif self.anchor_mode == 'constant':
+                anchor_t = self.constant_vector.expand(max_cand, -1)
+            elif self.anchor_mode == 'position':
+                anchor_t = self.pos_emb(torch.arange(max_cand, device=device))
+            elif self.anchor_mode == 'ephemeral':
+                q_id = quote_ids[t] if quote_ids is not None else str(t)
+                anchor_t = torch.zeros(max_cand, self.emb_dim, device=device)
+                for c in range(max_cand):
+                    if mask_t[c]:
+                        eid = cids_t[c].item()
+                        key = (eid, q_id)
+                        if key not in self.ephemeral_cache:
+                            seed_str = f"{eid}_{q_id}_{self.ephemeral_base_seed}"
+                            seed = int(hashlib.sha256(seed_str.encode()).hexdigest(), 16) % (2**32)
+                            gen = torch.Generator(device='cpu').manual_seed(seed)
+                            self.ephemeral_cache[key] = torch.randn(self.emb_dim, generator=gen)
+                        anchor_t[c] = self.ephemeral_cache[key].to(device)
+            elif self.anchor_mode == 'unstable':
+                q_id = quote_ids[t] if quote_ids is not None else str(t)
+                anchor_t = torch.zeros(max_cand, self.emb_dim, device=device)
+                for c in range(max_cand):
+                    if mask_t[c]:
+                        eid = cids_t[c].item()
+                        key = (eid, q_id)
+                        if key not in self.unstable_cache:
+                            seed_str = f"unstable_{eid}_{q_id}"
+                            seed = int(hashlib.sha256(seed_str.encode()).hexdigest(), 16) % (2**32)
+                            gen = torch.Generator(device='cpu').manual_seed(seed)
+                            fake_id = torch.randint(1, self.char_emb.num_embeddings, (1,), generator=gen).item()
+                            self.unstable_cache[key] = self.char_emb(torch.tensor(fake_id, device=device)).detach()
+                        anchor_t[c] = self.unstable_cache[key].to(device)
+            elif self.anchor_mode == 'shuffled_persistent':
+                mapped_ids = self.shuffled_mapping[cids_t]
+                anchor_t = self.char_emb(mapped_ids)
+            else:
+                # trainable_persistent, frozen_persistent, deterministic_hash
+                anchor_t = self.char_emb(cids_t)
+                
+            if anchor_t is not None:
+                cand_inputs = torch.cat([feats_t, anchor_t], dim=-1)
+            else:
+                cand_inputs = feats_t
+                
+            scores_t = self.scorer(cand_inputs).squeeze(-1)
+            scores_t = scores_t.masked_fill(~mask_t, float('-inf'))
+            all_scores.append(scores_t)
+            all_anchors.append(anchor_t if anchor_t is not None else torch.zeros(max_cand, self.emb_dim, device=device))
+            
+        scores_stacked = torch.stack(all_scores, dim=0)
+        anchors_stacked = torch.stack(all_anchors, dim=0) 
+        
+        return scores_stacked.unsqueeze(0), anchors_stacked.unsqueeze(0)

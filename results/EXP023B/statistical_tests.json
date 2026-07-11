@@ -1,0 +1,7 @@
+{
+    "GRU Persistent Anchor vs GRU No Anchor": 4.55484370612759e-18,
+    "GRU Persistent Anchor vs Nomemory Persistent Anchor": 9.513356967210579e-11,
+    "GRU Persistent Anchor vs Nomemory No Anchor": 3.189012427731794e-11,
+    "Nomemory Persistent Anchor vs Nomemory No Anchor": 0.6540600422118368,
+    "GRU No Anchor vs Nomemory No Anchor": 8.363395462530669e-06
+}

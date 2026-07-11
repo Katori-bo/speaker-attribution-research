@@ -1,0 +1,103 @@
+{
+    "seed": 12345,
+    "epochs": 10,
+    "learning_rate": 0.001,
+    "input_dim": 15,
+    "anchor_dim": 32,
+    "hidden_dim": 64,
+    "conditions": [
+        "nomemory_no_anchor",
+        "nomemory_persistent_anchor",
+        "gru_no_anchor",
+        "gru_persistent_anchor"
+    ],
+    "cpu_test_run": false,
+    "model_summaries": {
+        "nomemory_no_anchor": {
+            "condition": "nomemory_no_anchor",
+            "class_name": "NoMemoryEntityScorer",
+            "total_parameters": 48225,
+            "trainable_parameters": 9537,
+            "trainable_parameter_names": [
+                "pos_emb.weight",
+                "scorer.0.weight",
+                "scorer.0.bias",
+                "scorer.2.weight",
+                "scorer.2.bias",
+                "scorer.4.weight",
+                "scorer.4.bias"
+            ],
+            "anchor_related_parameter_names": [
+                "char_emb.weight",
+                "pos_emb.weight"
+            ],
+            "anchor_parameters_frozen": false
+        },
+        "nomemory_persistent_anchor": {
+            "condition": "nomemory_persistent_anchor",
+            "class_name": "NoMemoryEntityScorer",
+            "total_parameters": 50273,
+            "trainable_parameters": 11585,
+            "trainable_parameter_names": [
+                "pos_emb.weight",
+                "scorer.0.weight",
+                "scorer.0.bias",
+                "scorer.2.weight",
+                "scorer.2.bias",
+                "scorer.4.weight",
+                "scorer.4.bias"
+            ],
+            "anchor_related_parameter_names": [
+                "char_emb.weight",
+                "pos_emb.weight"
+            ],
+            "anchor_parameters_frozen": false
+        },
+        "gru_no_anchor": {
+            "condition": "gru_no_anchor",
+            "class_name": "RelationalSpeakerGRU",
+            "total_parameters": 34337,
+            "trainable_parameters": 34337,
+            "trainable_parameter_names": [
+                "candidate_encoder.0.weight",
+                "candidate_encoder.0.bias",
+                "candidate_encoder.2.weight",
+                "candidate_encoder.2.bias",
+                "gru_cell.weight_ih",
+                "gru_cell.weight_hh",
+                "gru_cell.bias_ih",
+                "gru_cell.bias_hh",
+                "scorer.0.weight",
+                "scorer.0.bias",
+                "scorer.2.weight",
+                "scorer.2.bias"
+            ],
+            "anchor_related_parameter_names": [],
+            "anchor_parameters_frozen": true
+        },
+        "gru_persistent_anchor": {
+            "condition": "gru_persistent_anchor",
+            "class_name": "EntityAnchoredRelationalGRU",
+            "total_parameters": 75073,
+            "trainable_parameters": 36385,
+            "trainable_parameter_names": [
+                "candidate_encoder.0.weight",
+                "candidate_encoder.0.bias",
+                "candidate_encoder.2.weight",
+                "candidate_encoder.2.bias",
+                "gru_cell.weight_ih",
+                "gru_cell.weight_hh",
+                "gru_cell.bias_ih",
+                "gru_cell.bias_hh",
+                "scorer.0.weight",
+                "scorer.0.bias",
+                "scorer.2.weight",
+                "scorer.2.bias"
+            ],
+            "anchor_related_parameter_names": [
+                "char_emb.weight"
+            ],
+            "anchor_parameters_frozen": true
+        }
+    }
+}

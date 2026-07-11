@@ -17,7 +17,7 @@ from src.utils.device import get_device
 from src.evaluation.runner import load_frozen_exp014_dataset
 from src.neural.sequence_dataset import build_character_vocab, TensorSequenceDataset
 from src.neural.models import SpeakerGRU
-from scripts.run_EXP021A_2_mlp_ce import compute_metrics, bootstrap_ci
+from scripts.run_EXP021A_2_mlp_ce import compute_metrics, bootstrap_ci, mcnemar_test
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -214,40 +214,18 @@ def main():
     ana_acc_ci = bootstrap_ci(base_preds, ana_acc_fn)
     mrr_ci = bootstrap_ci(base_preds, mrr_fn)
     
-    # Train MLP CE quickly to get McNemar baseline
-    logger.info("Training MLP CE for McNemar baseline...")
-    from scripts.run_EXP021A_2_mlp_ce import QuoteTensorDataset, RankingMLP, mcnemar_test
-    mlp_train_dataset = QuoteTensorDataset(train_seq)
-    mlp_test_dataset = QuoteTensorDataset(test_seq)
-    mlp_train_loader = DataLoader(mlp_train_dataset, batch_size=config.get('batch_size', 32), shuffle=True)
-    mlp_test_loader = DataLoader(mlp_test_dataset, batch_size=256, shuffle=False)
+    base_preds.to_csv("results/EXP021B/predictions.csv", index=False)
+    reset_preds.to_csv("results/EXP021B/predictions_reset_memory.csv", index=False)
+    nofb_preds.to_csv("results/EXP021B/predictions_no_feedback.csv", index=False)
+    shuffle_preds.to_csv("results/EXP021B/predictions_shuffle_feedback.csv", index=False)
     
-    mlp_model = RankingMLP(input_dim=input_dim).to(device)
-    mlp_opt = torch.optim.Adam(mlp_model.parameters(), lr=config['learning_rate'])
-    for _ in range(epochs):
-        mlp_model.train()
-        for batch in mlp_train_loader:
-            features = batch['features'].to(device)
-            mask = batch['mask'].to(device)
-            gold_index = batch['gold_index'].to(device)
-            mlp_opt.zero_grad()
-            scores = mlp_model(features, mask)
-            loss = nn.CrossEntropyLoss()(scores, gold_index)
-            loss.backward()
-            mlp_opt.step()
-            
-    mlp_model.eval()
-    mlp_results = []
-    with torch.no_grad():
-        for batch in mlp_test_loader:
-            scores = mlp_model(batch['features'].to(device), batch['mask'].to(device))
-            sorted_indices = torch.argsort(scores, dim=-1, descending=True)
-            for i in range(len(batch['quote_id'])):
-                gold = batch['gold_index'][i].item()
-                ranks = (sorted_indices[i] == gold).nonzero(as_tuple=True)[0]
-                rank = ranks[0].item() + 1 if len(ranks) > 0 else 999
-                mlp_results.append({'quote_id': batch['quote_id'][i], 'pred_rank': rank})
-    mlp_preds = pd.DataFrame(mlp_results)
+    baseline_path = Path("results/EXP021A_2/predictions.csv")
+    if not baseline_path.exists():
+        raise FileNotFoundError(
+            "EXP021A_2 baseline predictions are required. Run scripts/run_EXP021A_2_mlp_ce.py first."
+        )
+    mlp_preds = pd.read_csv(baseline_path)
+    mlp_metrics = compute_metrics(mlp_preds)
     
     p_value = mcnemar_test(base_preds, mlp_preds)
     
@@ -278,7 +256,8 @@ def main():
     
     report.append("## Analysis")
     report.append(f"- McNemar p-value vs MLP CE Baseline: {p_value:.4e}")
-    diff = (base_metrics['Accuracy'] - 0.6888) * 100
+    report.append(f"- MLP CE baseline accuracy: {mlp_metrics['Accuracy']*100:.2f}%")
+    diff = (base_metrics['Accuracy'] - mlp_metrics['Accuracy']) * 100
     report.append(f"- The GRU achieved a {'gain' if diff > 0 else 'loss'} of {abs(diff):.2f} pp against the memory-free neural baseline.")
     
     mem_diff = (base_metrics['Accuracy'] - reset_metrics['Accuracy']) * 100

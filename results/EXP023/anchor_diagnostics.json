@@ -1,0 +1,540 @@
+{
+    "no_anchor": {
+        "anchor_persistence_score": 0.0,
+        "unique_anchors": 1,
+        "trainable_params": {
+            "char_emb.weight": {
+                "requires_grad": false,
+                "shape": [
+                    1209,
+                    32
+                ]
+            },
+            "pos_emb.weight": {
+                "requires_grad": true,
+                "shape": [
+                    200,
+                    32
+                ]
+            },
+            "scorer.0.weight": {
+                "requires_grad": true,
+                "shape": [
+                    64,
+                    15
+                ]
+            },
+            "scorer.0.bias": {
+                "requires_grad": true,
+                "shape": [
+                    64
+                ]
+            },
+            "scorer.2.weight": {
+                "requires_grad": true,
+                "shape": [
+                    32,
+                    64
+                ]
+            },
+            "scorer.2.bias": {
+                "requires_grad": true,
+                "shape": [
+                    32
+                ]
+            },
+            "scorer.4.weight": {
+                "requires_grad": true,
+                "shape": [
+                    1,
+                    32
+                ]
+            },
+            "scorer.4.bias": {
+                "requires_grad": true,
+                "shape": [
+                    1
+                ]
+            }
+        }
+    },
+    "constant": {
+        "anchor_persistence_score": 0.9999999403953552,
+        "unique_anchors": 1,
+        "trainable_params": {
+            "constant_vector": {
+                "requires_grad": false,
+                "shape": [
+                    1,
+                    32
+                ]
+            },
+            "char_emb.weight": {
+                "requires_grad": false,
+                "shape": [
+                    1209,
+                    32
+                ]
+            },
+            "pos_emb.weight": {
+                "requires_grad": true,
+                "shape": [
+                    200,
+                    32
+                ]
+            },
+            "scorer.0.weight": {
+                "requires_grad": true,
+                "shape": [
+                    64,
+                    47
+                ]
+            },
+            "scorer.0.bias": {
+                "requires_grad": true,
+                "shape": [
+                    64
+                ]
+            },
+            "scorer.2.weight": {
+                "requires_grad": true,
+                "shape": [
+                    32,
+                    64
+                ]
+            },
+            "scorer.2.bias": {
+                "requires_grad": true,
+                "shape": [
+                    32
+                ]
+            },
+            "scorer.4.weight": {
+                "requires_grad": true,
+                "shape": [
+                    1,
+                    32
+                ]
+            },
+            "scorer.4.bias": {
+                "requires_grad": true,
+                "shape": [
+                    1
+                ]
+            }
+        }
+    },
+    "position": {
+        "anchor_persistence_score": 0.6131150546741538,
+        "unique_anchors": 15,
+        "trainable_params": {
+            "char_emb.weight": {
+                "requires_grad": false,
+                "shape": [
+                    1209,
+                    32
+                ]
+            },
+            "pos_emb.weight": {
+                "requires_grad": true,
+                "shape": [
+                    200,
+                    32
+                ]
+            },
+            "scorer.0.weight": {
+                "requires_grad": true,
+                "shape": [
+                    64,
+                    47
+                ]
+            },
+            "scorer.0.bias": {
+                "requires_grad": true,
+                "shape": [
+                    64
+                ]
+            },
+            "scorer.2.weight": {
+                "requires_grad": true,
+                "shape": [
+                    32,
+                    64
+                ]
+            },
+            "scorer.2.bias": {
+                "requires_grad": true,
+                "shape": [
+                    32
+                ]
+            },
+            "scorer.4.weight": {
+                "requires_grad": true,
+                "shape": [
+                    1,
+                    32
+                ]
+            },
+            "scorer.4.bias": {
+                "requires_grad": true,
+                "shape": [
+                    1
+                ]
+            }
+        }
+    },
+    "ephemeral": {
+        "anchor_persistence_score": -0.0014214753543476683,
+        "unique_anchors": 13166,
+        "trainable_params": {
+            "char_emb.weight": {
+                "requires_grad": false,
+                "shape": [
+                    1209,
+                    32
+                ]
+            },
+            "pos_emb.weight": {
+                "requires_grad": true,
+                "shape": [
+                    200,
+                    32
+                ]
+            },
+            "scorer.0.weight": {
+                "requires_grad": true,
+                "shape": [
+                    64,
+                    47
+                ]
+            },
+            "scorer.0.bias": {
+                "requires_grad": true,
+                "shape": [
+                    64
+                ]
+            },
+            "scorer.2.weight": {
+                "requires_grad": true,
+                "shape": [
+                    32,
+                    64
+                ]
+            },
+            "scorer.2.bias": {
+                "requires_grad": true,
+                "shape": [
+                    32
+                ]
+            },
+            "scorer.4.weight": {
+                "requires_grad": true,
+                "shape": [
+                    1,
+                    32
+                ]
+            },
+            "scorer.4.bias": {
+                "requires_grad": true,
+                "shape": [
+                    1
+                ]
+            }
+        }
+    },
+    "unstable": {
+        "anchor_persistence_score": 0.0014169047042204923,
+        "unique_anchors": 1208,
+        "trainable_params": {
+            "char_emb.weight": {
+                "requires_grad": false,
+                "shape": [
+                    1209,
+                    32
+                ]
+            },
+            "pos_emb.weight": {
+                "requires_grad": true,
+                "shape": [
+                    200,
+                    32
+                ]
+            },
+            "scorer.0.weight": {
+                "requires_grad": true,
+                "shape": [
+                    64,
+                    47
+                ]
+            },
+            "scorer.0.bias": {
+                "requires_grad": true,
+                "shape": [
+                    64
+                ]
+            },
+            "scorer.2.weight": {
+                "requires_grad": true,
+                "shape": [
+                    32,
+                    64
+                ]
+            },
+            "scorer.2.bias": {
+                "requires_grad": true,
+                "shape": [
+                    32
+                ]
+            },
+            "scorer.4.weight": {
+                "requires_grad": true,
+                "shape": [
+                    1,
+                    32
+                ]
+            },
+            "scorer.4.bias": {
+                "requires_grad": true,
+                "shape": [
+                    1
+                ]
+            }
+        }
+    },
+    "frozen_persistent": {
+        "anchor_persistence_score": 0.9999999791987474,
+        "unique_anchors": 134,
+        "trainable_params": {
+            "char_emb.weight": {
+                "requires_grad": false,
+                "shape": [
+                    1209,
+                    32
+                ]
+            },
+            "pos_emb.weight": {
+                "requires_grad": true,
+                "shape": [
+                    200,
+                    32
+                ]
+            },
+            "scorer.0.weight": {
+                "requires_grad": true,
+                "shape": [
+                    64,
+                    47
+                ]
+            },
+            "scorer.0.bias": {
+                "requires_grad": true,
+                "shape": [
+                    64
+                ]
+            },
+            "scorer.2.weight": {
+                "requires_grad": true,
+                "shape": [
+                    32,
+                    64
+                ]
+            },
+            "scorer.2.bias": {
+                "requires_grad": true,
+                "shape": [
+                    32
+                ]
+            },
+            "scorer.4.weight": {
+                "requires_grad": true,
+                "shape": [
+                    1,
+                    32
+                ]
+            },
+            "scorer.4.bias": {
+                "requires_grad": true,
+                "shape": [
+                    1
+                ]
+            }
+        }
+    },
+    "deterministic_hash": {
+        "anchor_persistence_score": 0.9999999736508319,
+        "unique_anchors": 134,
+        "trainable_params": {
+            "char_emb.weight": {
+                "requires_grad": false,
+                "shape": [
+                    1209,
+                    32
+                ]
+            },
+            "pos_emb.weight": {
+                "requires_grad": true,
+                "shape": [
+                    200,
+                    32
+                ]
+            },
+            "scorer.0.weight": {
+                "requires_grad": true,
+                "shape": [
+                    64,
+                    47
+                ]
+            },
+            "scorer.0.bias": {
+                "requires_grad": true,
+                "shape": [
+                    64
+                ]
+            },
+            "scorer.2.weight": {
+                "requires_grad": true,
+                "shape": [
+                    32,
+                    64
+                ]
+            },
+            "scorer.2.bias": {
+                "requires_grad": true,
+                "shape": [
+                    32
+                ]
+            },
+            "scorer.4.weight": {
+                "requires_grad": true,
+                "shape": [
+                    1,
+                    32
+                ]
+            },
+            "scorer.4.bias": {
+                "requires_grad": true,
+                "shape": [
+                    1
+                ]
+            }
+        }
+    },
+    "trainable_persistent": {
+        "anchor_persistence_score": 1.000000020316439,
+        "unique_anchors": 134,
+        "trainable_params": {
+            "char_emb.weight": {
+                "requires_grad": true,
+                "shape": [
+                    1209,
+                    32
+                ]
+            },
+            "pos_emb.weight": {
+                "requires_grad": true,
+                "shape": [
+                    200,
+                    32
+                ]
+            },
+            "scorer.0.weight": {
+                "requires_grad": true,
+                "shape": [
+                    64,
+                    47
+                ]
+            },
+            "scorer.0.bias": {
+                "requires_grad": true,
+                "shape": [
+                    64
+                ]
+            },
+            "scorer.2.weight": {
+                "requires_grad": true,
+                "shape": [
+                    32,
+                    64
+                ]
+            },
+            "scorer.2.bias": {
+                "requires_grad": true,
+                "shape": [
+                    32
+                ]
+            },
+            "scorer.4.weight": {
+                "requires_grad": true,
+                "shape": [
+                    1,
+                    32
+                ]
+            },
+            "scorer.4.bias": {
+                "requires_grad": true,
+                "shape": [
+                    1
+                ]
+            }
+        }
+    },
+    "shuffled_persistent": {
+        "anchor_persistence_score": 0.9999999805525668,
+        "unique_anchors": 134,
+        "trainable_params": {
+            "char_emb.weight": {
+                "requires_grad": false,
+                "shape": [
+                    1209,
+                    32
+                ]
+            },
+            "pos_emb.weight": {
+                "requires_grad": true,
+                "shape": [
+                    200,
+                    32
+                ]
+            },
+            "scorer.0.weight": {
+                "requires_grad": true,
+                "shape": [
+                    64,
+                    47
+                ]
+            },
+            "scorer.0.bias": {
+                "requires_grad": true,
+                "shape": [
+                    64
+                ]
+            },
+            "scorer.2.weight": {
+                "requires_grad": true,
+                "shape": [
+                    32,
+                    64
+                ]
+            },
+            "scorer.2.bias": {
+                "requires_grad": true,
+                "shape": [
+                    32
+                ]
+            },
+            "scorer.4.weight": {
+                "requires_grad": true,
+                "shape": [
+                    1,
+                    32
+                ]
+            },
+            "scorer.4.bias": {
+                "requires_grad": true,
+                "shape": [
+                    1
+                ]
+            }
+        }
+    }
+}

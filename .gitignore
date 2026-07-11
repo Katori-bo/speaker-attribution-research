@@ -22,3 +22,7 @@ experiments/**/predictions.csv
 
 # System
 .DS_Store
+
+# Results Data
+results/**/*.csv
+data_raw_pdnc.bin

@@ -1,0 +1,6 @@
+{
+    "overall_accuracy": 0.7583465818759937,
+    "implicit_accuracy": 0.7512617159336697,
+    "num_test_quotes": 2516,
+    "num_test_implicit_quotes": 1387
+}

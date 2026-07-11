@@ -17,7 +17,7 @@ from src.utils.device import get_device
 from src.evaluation.runner import load_frozen_exp014_dataset
 from src.neural.sequence_dataset import build_character_vocab, TensorSequenceDataset
 from src.neural.models import RelationalSpeakerGRU
-from scripts.run_EXP021A_2_mlp_ce import compute_metrics, bootstrap_ci
+from scripts.run_EXP021A_2_mlp_ce import compute_metrics, bootstrap_ci, mcnemar_test
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -224,15 +224,21 @@ def main():
     ana_acc_ci = bootstrap_ci(base_preds, ana_acc_fn)
     mrr_ci = bootstrap_ci(base_preds, mrr_fn)
     
-    # Load MLP CE baseline for McNemar
+    base_preds.to_csv("results/EXP022A_0/predictions.csv", index=False)
+    reset_preds.to_csv("results/EXP022A_0/predictions_reset_memory.csv", index=False)
+    shuffle_preds.to_csv("results/EXP022A_0/predictions_shuffle_feedback.csv", index=False)
+    nosim_preds.to_csv("results/EXP022A_0/predictions_no_similarity.csv", index=False)
+    
+    # Load MLP CE baseline for McNemar and dynamic accuracy deltas.
     logger.info("Loading MLP CE baseline for McNemar test...")
-    try:
-        mlp_preds = pd.read_csv("results/EXP021A_2/predictions.csv")
-        from scripts.run_EXP021A_2_mlp_ce import mcnemar_test
-        p_value = mcnemar_test(base_preds, mlp_preds)
-    except FileNotFoundError:
-        logger.warning("results/EXP021A_2/predictions.csv not found. McNemar test skipped.")
-        p_value = 1.0
+    baseline_path = Path("results/EXP021A_2/predictions.csv")
+    if not baseline_path.exists():
+        raise FileNotFoundError(
+            "EXP021A_2 baseline predictions are required. Run scripts/run_EXP021A_2_mlp_ce.py first."
+        )
+    mlp_preds = pd.read_csv(baseline_path)
+    mlp_metrics = compute_metrics(mlp_preds)
+    p_value = mcnemar_test(base_preds, mlp_preds)
     
     report = ["# EXP022A.0 Relational Speaker GRU Results\n"]
     
@@ -273,7 +279,8 @@ def main():
     
     report.append("## Analysis")
     report.append(f"- McNemar p-value vs MLP CE Baseline: {p_value:.4e}")
-    diff = (base_metrics['Accuracy'] - 0.6888) * 100
+    report.append(f"- MLP CE baseline accuracy: {mlp_metrics['Accuracy']*100:.2f}%")
+    diff = (base_metrics['Accuracy'] - mlp_metrics['Accuracy']) * 100
     report.append(f"- The Relational GRU achieved a {'gain' if diff > 0 else 'loss'} of {abs(diff):.2f} pp against the memory-free neural baseline.")
     
     mem_diff = (base_metrics['Accuracy'] - reset_metrics['Accuracy']) * 100

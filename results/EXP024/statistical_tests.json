@@ -1,0 +1,7 @@
+{
+    "nomemory_plus_position_index vs nomemory_baseline": 0.05034932374816309,
+    "nomemory_plus_position_bucket vs nomemory_baseline": 0.03463428897825056,
+    "gru_plus_position_index vs gru_baseline": 0.017706065807366642,
+    "gru_plus_position_bucket vs gru_baseline": 0.0743529053685636,
+    "nomemory_plus_shuffled_position_index vs nomemory_baseline": 0.5231680971364009
+}

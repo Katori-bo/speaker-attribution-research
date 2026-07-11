@@ -1,0 +1,20 @@
+{
+    "seed": 12345,
+    "epochs": 10,
+    "learning_rate": 0.001,
+    "input_dim": 15,
+    "anchor_dim": 32,
+    "hidden_dim": 64,
+    "conditions": [
+        "no_anchor",
+        "constant",
+        "position",
+        "ephemeral",
+        "unstable",
+        "frozen_persistent",
+        "deterministic_hash",
+        "trainable_persistent",
+        "shuffled_persistent"
+    ],
+    "cpu_test_run": false
+}

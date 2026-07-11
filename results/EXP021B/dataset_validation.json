@@ -1,0 +1,17 @@
+{
+    "original_quotes": 37130,
+    "original_candidates": 160972,
+    "vocab_size": 1133,
+    "modes": {
+        "full": {
+            "quotes_processed": 37130,
+            "candidates_processed": 160972,
+            "feature_dim": 22
+        },
+        "state_free": {
+            "quotes_processed": 37130,
+            "candidates_processed": 160972,
+            "feature_dim": 15
+        }
+    }
+}

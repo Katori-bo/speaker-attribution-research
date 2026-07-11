@@ -1,0 +1,40 @@
+{
+    "approved_features": [
+        "candidate_in_quote_chain",
+        "candidate_is_attributed_speaker",
+        "candidate_is_explicit_mention",
+        "candidate_is_recent_mention",
+        "chain_recency",
+        "conversation_length",
+        "conversation_turn_index",
+        "discourse_context_length",
+        "discourse_dialogue_position",
+        "lexical_has_exclamation",
+        "lexical_has_question_mark",
+        "lexical_quote_length_chars",
+        "lexical_quote_length_tokens",
+        "nearest_coref_dist",
+        "recent_mention_count"
+    ],
+    "feature_count": 15,
+    "dataset_hash": "17552252053132709485",
+    "train_quote_count": 34614,
+    "test_quote_count": 2516,
+    "train_candidate_count": 147806,
+    "test_candidate_count": 13166,
+    "forbidden_features_checked": [
+        "candidate_in_participant_stack",
+        "candidate_is_last_speaker",
+        "candidate_is_previous_speaker",
+        "candidate_stack_depth",
+        "conv_active_id",
+        "conv_interruption_distance",
+        "conversation_speaker_change",
+        "quoteByteSpans",
+        "quote_end_byte",
+        "quote_start_byte",
+        "symbolic_alternation_rule_fired",
+        "symbolic_explicit_rule_fired"
+    ],
+    "forbidden_features_present": []
+}

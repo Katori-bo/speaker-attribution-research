@@ -1,0 +1,15 @@
+{
+    "quotes_match": true,
+    "original_quotes": 37130,
+    "new_quotes": 37130,
+    "candidates_match": true,
+    "original_candidates": 160972,
+    "new_candidates": 160972,
+    "gold_match": true,
+    "original_gold_count": 34443,
+    "new_gold_count": 34443,
+    "dimension_match": true,
+    "expected_dim": 22,
+    "actual_dim": 22,
+    "tensor_match": true
+}
