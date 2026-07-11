@@ -26,3 +26,8 @@ experiments/**/predictions.csv
 # Results Data
 results/**/*.csv
 data_raw_pdnc.bin
+
+# Scratch and Temp Scripts
+scratch_*.py
+test_errors*.py
+update_script.py
