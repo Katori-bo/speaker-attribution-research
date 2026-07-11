@@ -263,6 +263,213 @@ class RelationalSpeakerGRU(nn.Module):
         sims_stacked = torch.stack(all_sims, dim=0)
         return scores_stacked.unsqueeze(0), sims_stacked.unsqueeze(0)
 
+class EXP026ACandidateOnlyScorer(nn.Module):
+    """
+    EXP026A Variant A.
+
+    Scores candidates through the same candidate encoder and candidate-only branch
+    used by EXP026ABilinearSpeakerGRU. There is no recurrent state in this model.
+    """
+    def __init__(self, feature_dim: int, hidden_dim: int = 64):
+        super().__init__()
+        self.hidden_dim = hidden_dim
+        self.feature_names = None
+
+        self.candidate_encoder = nn.Sequential(
+            nn.Linear(feature_dim, hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, hidden_dim)
+        )
+
+        self.candidate_score_branch = nn.Sequential(
+            nn.Linear(hidden_dim, hidden_dim // 2),
+            nn.ReLU(),
+            nn.Linear(hidden_dim // 2, 1)
+        )
+
+    def encode_candidates(self, candidate_features: torch.Tensor) -> torch.Tensor:
+        return self.candidate_encoder(candidate_features)
+
+    def candidate_score(self, candidate_repr: torch.Tensor) -> torch.Tensor:
+        return self.candidate_score_branch(candidate_repr).squeeze(-1)
+
+    def score(self, candidate_repr: torch.Tensor) -> torch.Tensor:
+        return self.candidate_score(candidate_repr)
+
+    def forward(self, candidate_features, candidate_mask):
+        if candidate_features.dim() == 4:
+            candidate_features = candidate_features.squeeze(0)
+            candidate_mask = candidate_mask.squeeze(0)
+
+        seq_len, _, _ = candidate_features.shape
+        all_scores = []
+
+        for t in range(seq_len):
+            cand_vecs = self.encode_candidates(candidate_features[t])
+            scores_t = self.score(cand_vecs)
+            scores_t = scores_t.masked_fill(~candidate_mask[t], float('-inf'))
+            all_scores.append(scores_t)
+
+        return torch.stack(all_scores, dim=0).unsqueeze(0), None
+
+class EXP026AParameterMatchedNoMemoryScorer(nn.Module):
+    """
+    Secondary EXP026A capacity control.
+
+    This model keeps the candidate encoder state-free and adds no recurrent path.
+    Its scorer width can be increased to approximate the trainable parameter count
+    of the bilinear GRU when the preregistered 10% threshold requires a capacity
+    control.
+    """
+    def __init__(self, feature_dim: int, hidden_dim: int = 64, scorer_hidden_dim: int = 128):
+        super().__init__()
+        self.hidden_dim = hidden_dim
+        self.scorer_hidden_dim = scorer_hidden_dim
+        self.feature_names = None
+
+        self.candidate_encoder = nn.Sequential(
+            nn.Linear(feature_dim, hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, hidden_dim)
+        )
+
+        self.candidate_score_branch = nn.Sequential(
+            nn.Linear(hidden_dim, scorer_hidden_dim),
+            nn.ReLU(),
+            nn.Linear(scorer_hidden_dim, scorer_hidden_dim),
+            nn.ReLU(),
+            nn.Linear(scorer_hidden_dim, 1)
+        )
+
+    def encode_candidates(self, candidate_features: torch.Tensor) -> torch.Tensor:
+        return self.candidate_encoder(candidate_features)
+
+    def candidate_score(self, candidate_repr: torch.Tensor) -> torch.Tensor:
+        return self.candidate_score_branch(candidate_repr).squeeze(-1)
+
+    def score(self, candidate_repr: torch.Tensor) -> torch.Tensor:
+        return self.candidate_score(candidate_repr)
+
+    def forward(self, candidate_features, candidate_mask):
+        if candidate_features.dim() == 4:
+            candidate_features = candidate_features.squeeze(0)
+            candidate_mask = candidate_mask.squeeze(0)
+
+        seq_len, _, _ = candidate_features.shape
+        all_scores = []
+
+        for t in range(seq_len):
+            cand_vecs = self.encode_candidates(candidate_features[t])
+            scores_t = self.score(cand_vecs)
+            scores_t = scores_t.masked_fill(~candidate_mask[t], float('-inf'))
+            all_scores.append(scores_t)
+
+        return torch.stack(all_scores, dim=0).unsqueeze(0), None
+
+class EXP026ABilinearSpeakerGRU(nn.Module):
+    """
+    EXP026A Variant C.
+
+    The scorer is exactly:
+        s(c, h) = f(c) + c^T W h
+
+    f(c) is the full candidate-only branch used by EXP026ACandidateOnlyScorer.
+    The interaction branch has no bias; only W is trainable. Therefore
+    s(c, 0) = f(c) by construction.
+    """
+    def __init__(self, feature_dim: int, hidden_dim: int = 64):
+        super().__init__()
+        self.hidden_dim = hidden_dim
+        self.feature_names = None
+
+        self.candidate_encoder = nn.Sequential(
+            nn.Linear(feature_dim, hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, hidden_dim)
+        )
+
+        self.gru_cell = nn.GRUCell(hidden_dim, hidden_dim)
+
+        self.candidate_score_branch = nn.Sequential(
+            nn.Linear(hidden_dim, hidden_dim // 2),
+            nn.ReLU(),
+            nn.Linear(hidden_dim // 2, 1)
+        )
+
+        self.bilinear_weight = nn.Parameter(torch.empty(hidden_dim, hidden_dim))
+        nn.init.xavier_uniform_(self.bilinear_weight)
+
+    def encode_candidates(self, candidate_features: torch.Tensor) -> torch.Tensor:
+        return self.candidate_encoder(candidate_features)
+
+    def candidate_score(self, candidate_repr: torch.Tensor) -> torch.Tensor:
+        return self.candidate_score_branch(candidate_repr).squeeze(-1)
+
+    def interaction(self, candidate_repr: torch.Tensor, hidden: torch.Tensor) -> torch.Tensor:
+        if hidden.dim() == 1:
+            hidden = hidden.unsqueeze(0)
+        if hidden.shape[0] == 1 and candidate_repr.shape[0] != 1:
+            hidden = hidden.expand(candidate_repr.shape[0], -1)
+        wh = torch.matmul(hidden, self.bilinear_weight.t())
+        return (candidate_repr * wh).sum(dim=-1)
+
+    def score(self, candidate_repr: torch.Tensor, hidden: torch.Tensor) -> torch.Tensor:
+        return self.candidate_score(candidate_repr) + self.interaction(candidate_repr, hidden)
+
+    def forward(self, candidate_features, candidate_mask,
+                gold_index_for_update=None, ablate_memory=False, ablate_shuffle=False,
+                return_interactions=False):
+        if candidate_features.dim() == 4:
+            candidate_features = candidate_features.squeeze(0)
+            candidate_mask = candidate_mask.squeeze(0)
+            if gold_index_for_update is not None:
+                gold_index_for_update = gold_index_for_update.squeeze(0)
+
+        seq_len, max_cand, _ = candidate_features.shape
+        device = candidate_features.device
+
+        h = torch.zeros(1, self.hidden_dim, device=device)
+        all_scores = []
+        all_interactions = []
+
+        for t in range(seq_len):
+            if ablate_memory:
+                h = torch.zeros(1, self.hidden_dim, device=device)
+
+            feats_t = candidate_features[t]
+            mask_t = candidate_mask[t]
+
+            cand_vecs = self.encode_candidates(feats_t)
+            h_expanded = h.expand(max_cand, -1)
+            interactions_t = self.interaction(cand_vecs, h_expanded)
+            scores_t = self.score(cand_vecs, h_expanded)
+            scores_t = scores_t.masked_fill(~mask_t, float('-inf'))
+
+            all_scores.append(scores_t)
+            all_interactions.append(interactions_t.masked_fill(~mask_t, 0.0))
+
+            if gold_index_for_update is not None:
+                spk_idx = gold_index_for_update[t].item()
+            else:
+                spk_idx = torch.argmax(scores_t).item()
+
+            if ablate_shuffle:
+                valid_indices = torch.nonzero(mask_t, as_tuple=False).flatten()
+                if len(valid_indices) > 0:
+                    spk_idx = valid_indices[torch.randint(0, len(valid_indices), (1,), device=device)].item()
+                else:
+                    spk_idx = 0
+
+            spk_vec = cand_vecs[spk_idx].unsqueeze(0)
+            h = self.gru_cell(spk_vec, h)
+
+        scores_stacked = torch.stack(all_scores, dim=0).unsqueeze(0)
+        interactions_stacked = torch.stack(all_interactions, dim=0).unsqueeze(0)
+
+        if return_interactions:
+            return scores_stacked, interactions_stacked
+        return scores_stacked, interactions_stacked
+
 class NoMemoryEntityScorer(nn.Module):
     def __init__(self, feature_dim: int, vocab_size: int, emb_dim: int = 32, hidden_dim: int = 64, 
                  anchor_mode: str = 'trainable_persistent', pretrained_emb=None):
