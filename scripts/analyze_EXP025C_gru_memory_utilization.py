@@ -5,6 +5,7 @@ import yaml
 import torch
 import logging
 import random
+import argparse
 import pandas as pd
 import numpy as np
 from pathlib import Path
@@ -12,6 +13,7 @@ from torch import nn
 from torch.utils.data import DataLoader, TensorDataset
 from sklearn.preprocessing import StandardScaler
 from collections import defaultdict
+from sklearn.metrics import accuracy_score, balanced_accuracy_score, precision_score, recall_score, f1_score, average_precision_score, roc_auc_score
 
 # Add root directory to path to allow importing src
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -49,7 +51,6 @@ def batch_to_device(batch, device):
     )
 
 def manual_gru_cell_gates(x, h_prev, gru_cell):
-    """Manually computes the GRU gates for diagnostic 5."""
     w_ih = gru_cell.weight_ih
     w_hh = gru_cell.weight_hh
     b_ih = gru_cell.bias_ih
@@ -72,6 +73,10 @@ def manual_gru_cell_gates(x, h_prev, gru_cell):
     return r_t, z_t, n_t
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--reuse-checkpoints", action="store_true", help="Do not overwrite existing checkpoints")
+    args = parser.parse_args()
+
     out_dir = Path("results/EXP025C")
     out_dir.mkdir(parents=True, exist_ok=True)
     chk_dir = out_dir / "checkpoints"
@@ -85,6 +90,22 @@ def main():
 
     df = load_frozen_exp014_dataset()
     vocab = build_character_vocab(df, vocab_path="results/EXP025C/character_vocab.json")
+
+    # Load type mappings for novel and quote type metadata
+    q_info_dir = Path("data/raw/pdnc/data")
+    type_mappings = {}
+    for novel in df['novel'].unique():
+        q_info_path = q_info_dir / novel / "quotation_info.csv"
+        if q_info_path.exists():
+            q_info = pd.read_csv(q_info_path)
+            for idx, row in q_info.iterrows():
+                q_id_raw = row.get("quoteID")
+                if pd.isna(q_id_raw) or not q_id_raw: q_id = f"{novel}_{idx}"
+                else:
+                    quote_num = str(q_id_raw).strip()
+                    if quote_num.startswith('Q'): quote_num = quote_num[1:]
+                    q_id = f"{novel}_{quote_num}"
+                type_mappings[q_id] = row.get("quoteType")
 
     APPROVED_STATE_FREE_FEATURES = [
         "candidate_in_quote_chain", "candidate_is_attributed_speaker", "candidate_is_explicit_mention",
@@ -110,18 +131,19 @@ def main():
     test_loader = DataLoader(test_seq, batch_size=1, shuffle=False, collate_fn=collate_fn)
 
     SEEDS = [1, 2, 3, 4, 5]
+    PROBE_SEEDS = [101, 102, 103]
     epochs = config['epochs']
     
-    # Check EXP025 accuracies for validation
     original_metrics_df = pd.read_csv("results/EXP025/seed_metrics.csv")
     gru_orig_metrics = original_metrics_df[original_metrics_df['Model'] == 'gru_normal'].set_index('Seed')['Accuracy'].to_dict()
 
-    # Collectors for diagnostics
     diag1_records = []
     diag2_records = []
+    diag2_quote_records = []
     diag3_records = []
     diag5_records = []
     diag4_results = []
+    validation_records = []
 
     for seed in SEEDS:
         logger.info(f"========== SEED {seed} ==========")
@@ -130,11 +152,14 @@ def main():
         gru = RelationalSpeakerGRU(feature_dim=input_dim, hidden_dim=64).to(device)
         chk_path = chk_dir / f"gru_seed{seed}.pt"
 
-        if chk_path.exists():
+        if args.reuse_checkpoints and chk_path.exists():
             logger.info(f"Loading checkpoint {chk_path}...")
-            gru.load_state_dict(torch.load(chk_path, map_location=device))
+            checkpoint = torch.load(chk_path, map_location=device)
+            # Validate checkpoint metadata
+            assert checkpoint['feature_list'] == APPROVED_STATE_FREE_FEATURES, "Checkpoint feature mismatch!"
+            gru.load_state_dict(checkpoint['model_state_dict'])
         else:
-            logger.info(f"Retraining model for seed {seed} (Original checkpoint unavailable)...")
+            logger.info(f"Retraining model for seed {seed}...")
             opt_gru = torch.optim.Adam(gru.parameters(), lr=config['learning_rate'])
             crit = nn.CrossEntropyLoss()
             for epoch in range(epochs):
@@ -146,14 +171,20 @@ def main():
                     loss = crit(scores.squeeze(0), gold_index.squeeze(0) if gold_index.dim() == 2 else gold_index)
                     loss.backward()
                     opt_gru.step()
-            torch.save(gru.state_dict(), chk_path)
+            
+            torch.save({
+                "model_state_dict": gru.state_dict(),
+                "seed": seed,
+                "feature_list": APPROVED_STATE_FREE_FEATURES,
+                "hidden_dim": 64,
+                "epochs": epochs,
+                "learning_rate": config["learning_rate"],
+            }, chk_path)
 
         # VALIDATION: Retrained accuracy against original EXP025
         gru.eval()
         correct_count = 0
         total_count = 0
-        
-        # We need normal predictions for Diagnostic 2
         normal_preds = {}
         
         with torch.no_grad():
@@ -163,7 +194,6 @@ def main():
                 scores = scores.squeeze(0)
                 golds = gold_index.squeeze(0) if gold_index.dim() == 2 else gold_index
                 preds = torch.argmax(scores, dim=-1)
-                
                 probs = torch.softmax(scores, dim=-1)
                 
                 for i in range(len(q_ids)):
@@ -183,9 +213,21 @@ def main():
         acc = correct_count / total_count
         orig_acc = gru_orig_metrics[seed]
         logger.info(f"Seed {seed} Validation: Retrained Acc={acc:.4f}, Original EXP025 Acc={orig_acc:.4f}")
-        if abs(acc - orig_acc) > 0.01:
+        
+        diff = abs(acc - orig_acc)
+        validation_records.append({
+            'seed': seed,
+            'original_accuracy': orig_acc,
+            'retrained_accuracy': acc,
+            'absolute_difference': diff,
+            'validation_passed': diff <= 0.01
+        })
+        
+        if diff > 0.005:
+            logger.warning(f"Seed {seed} differs from original by {diff*100:.2f}% (Warning Threshold > 0.5%)")
+        if diff > 0.01:
             logger.error(f"Mismatch exceeds 1.0%! Retrained: {acc:.4f}, Original: {orig_acc:.4f}")
-            logger.error("Stopping script.")
+            logger.error("Stopping script. Validation Failed.")
             return
 
         # DIAGNOSTIC 1 & 5: Hidden-State Movement & Gate Statistics
@@ -201,6 +243,9 @@ def main():
                 for t in range(seq_len):
                     feats_t = features[0, t]
                     mask_t = mask[0, t]
+                    q_id = q_ids[t]
+                    novel = q_id.split('_')[0] if '_' in q_id else q_id
+                    quote_type = type_mappings.get(q_id, 'Unknown')
                     
                     h_norm = torch.norm(h, p=2).item()
                     h_mean = torch.mean(h).item()
@@ -221,9 +266,9 @@ def main():
                     cand_vecs = gru.candidate_encoder(feats_t)
                     h_expanded = h.expand(cand_vecs.size(0), -1)
                     sim = torch.nn.functional.cosine_similarity(cand_vecs, h_expanded, dim=-1).unsqueeze(-1)
+                    
                     x = torch.cat([cand_vecs, h_expanded, sim], dim=-1)
-                    scores_t = gru.scorer(x).squeeze(-1)
-                    scores_t = scores_t.masked_fill(~mask_t, float('-inf'))
+                    scores_t = gru.scorer(x).squeeze(-1).masked_fill(~mask_t, float('-inf'))
                     
                     pred_idx = torch.argmax(scores_t).item()
                     gold_idx = gold_index[t].item()
@@ -231,10 +276,11 @@ def main():
                     probs_t = torch.softmax(scores_t, dim=-1)
                     confidence = probs_t[pred_idx].item()
                     
-                    q_id = q_ids[t]
-                    
                     diag1_records.append({
                         'seed': seed,
+                        'novel': novel,
+                        'quote_type': quote_type,
+                        'quote_index_within_novel': t,
                         'quote_id': q_id,
                         'hidden_norm': h_norm,
                         'hidden_mean': h_mean,
@@ -263,10 +309,9 @@ def main():
         # DIAGNOSTIC 2: Prediction Equivalence
         logger.info(f"Running Diagnostic 2 on Seed {seed}...")
         modes = [
-            ("reset_hidden_each_quote", {"ablate_memory": True}),
-            ("zero_update", {"ablate_memory": True}),
+            ("zero_state_each_quote", {"ablate_memory": True}),
             ("shuffled_update", {"ablate_shuffle": True}),
-            ("teacher_forced_eval_diagnostic", {}) # For TF, we need gold_index
+            ("teacher_forced_eval_diagnostic", {}) # Requires gold_index
         ]
         
         for mode, kwargs in modes:
@@ -319,6 +364,18 @@ def main():
                         sum_abs_max_prob_diff += abs(n_max_prob - a_max_prob)
                         total += 1
                         
+                        diag2_quote_records.append({
+                            'seed': seed,
+                            'quote_id': q_id,
+                            'mode': mode,
+                            'normal_prediction': n_pred,
+                            'ablation_prediction': a_pred,
+                            'normal_correct': n_correct,
+                            'ablation_correct': a_correct,
+                            'normal_gold_probability': n_gold_prob,
+                            'ablation_gold_probability': a_gold_prob
+                        })
+                        
             diag2_records.append({
                 'seed': seed,
                 'comparison_mode': mode,
@@ -331,24 +388,61 @@ def main():
                 'mean_abs_max_prob_difference': sum_abs_max_prob_diff / total
             })
 
-        # DIAGNOSTIC 3: Scorer Hidden-State Weight Usage
+        # DIAGNOSTIC 3: Scorer Hidden-State Weight Usage and Functional Measurement
         w = gru.scorer[0].weight.data
         d = gru.hidden_dim
         w_cand = w[:, :d]
         w_hidden = w[:, d:2*d]
+        w_sim = w[:, 2*d:2*d+1]
+        
         norm_cand = torch.norm(w_cand, p='fro').item()
         norm_hidden = torch.norm(w_hidden, p='fro').item()
+        norm_sim = torch.norm(w_sim, p='fro').item()
         
+        # Functional measure: Mean absolute logit & prob change when hidden state is zeroed
+        sum_logit_diff = 0.0
+        sum_prob_diff = 0.0
+        total_valid_cands = 0
+        with torch.no_grad():
+            for batch in test_loader:
+                features, mask, _, _, _, _ = batch_to_device(batch, device)
+                for t in range(features.shape[1]):
+                    feats_t = features[0, t]
+                    mask_t = mask[0, t]
+                    cand_vecs = gru.candidate_encoder(feats_t)
+                    
+                    # Random or pseudo-random typical hidden state h from testing distribution to see impact
+                    # Or we can just use normal random vector. We'll use a standard normal normalized to length 1
+                    h_test = torch.randn(1, gru.hidden_dim, device=device)
+                    h_test = h_test / torch.norm(h_test, p=2)
+                    
+                    h_expanded = h_test.expand(cand_vecs.size(0), -1)
+                    sim = torch.nn.functional.cosine_similarity(cand_vecs, h_expanded, dim=-1).unsqueeze(-1)
+                    x_normal = torch.cat([cand_vecs, h_expanded, sim], dim=-1)
+                    scores_norm = gru.scorer(x_normal).squeeze(-1).masked_fill(~mask_t, float('-inf'))
+                    probs_norm = torch.softmax(scores_norm, dim=-1)
+                    
+                    x_zero = torch.cat([cand_vecs, torch.zeros_like(h_expanded), torch.zeros_like(sim)], dim=-1)
+                    scores_zero = gru.scorer(x_zero).squeeze(-1).masked_fill(~mask_t, float('-inf'))
+                    probs_zero = torch.softmax(scores_zero, dim=-1)
+                    
+                    sum_logit_diff += torch.abs(scores_norm - scores_zero)[mask_t].sum().item()
+                    sum_prob_diff += torch.abs(probs_norm - probs_zero)[mask_t].sum().item()
+                    total_valid_cands += mask_t.sum().item()
+                    
         diag3_records.append({
             'seed': seed,
             'candidate_block_weight_norm': norm_cand,
             'hidden_block_weight_norm': norm_hidden,
-            'hidden_to_candidate_norm_ratio': norm_hidden / norm_cand if norm_cand > 0 else 0
+            'similarity_weight_norm': norm_sim,
+            'hidden_to_candidate_norm_ratio': norm_hidden / norm_cand if norm_cand > 0 else 0,
+            'functional_mean_abs_logit_change_vs_zero': sum_logit_diff / total_valid_cands,
+            'functional_mean_abs_prob_change_vs_zero': sum_prob_diff / total_valid_cands
         })
 
         # DIAGNOSTIC 4: Previous-Speaker Probe
         logger.info(f"Running Diagnostic 4 on Seed {seed}...")
-        def collect_probe_dataset(loader, is_train=True):
+        def collect_probe_dataset(loader, update_mode="autoregressive"):
             X_h, X_c, X_hc, Y = [], [], [], []
             with torch.no_grad():
                 for batch in loader:
@@ -375,56 +469,103 @@ def main():
                             X_hc.append(torch.cat([h.clone().squeeze(0), cand_vecs[c].clone()]))
                             Y.append(torch.tensor([1.0 if is_prev_speaker else 0.0], device=device))
                             
-                        # Update GRU (use gold_index if train, else predicted)
                         x = torch.cat([cand_vecs, h.expand(cand_vecs.size(0), -1), 
                                      torch.nn.functional.cosine_similarity(cand_vecs, h.expand(cand_vecs.size(0), -1), dim=-1).unsqueeze(-1)], dim=-1)
                         scores_t = gru.scorer(x).squeeze(-1).masked_fill(~mask_t, float('-inf'))
                         
-                        spk_idx = gold_index[t].item() if is_train else torch.argmax(scores_t).item()
+                        if update_mode == "teacher_forced":
+                            spk_idx = gold_index[t].item()
+                        else:
+                            spk_idx = torch.argmax(scores_t).item()
+                            
                         spk_vec = cand_vecs[spk_idx].unsqueeze(0)
                         h = gru.gru_cell(spk_vec, h)
                         
             return torch.stack(X_h), torch.stack(X_c), torch.stack(X_hc), torch.stack(Y)
 
-        X_h_train, X_c_train, X_hc_train, Y_train = collect_probe_dataset(train_loader, is_train=True)
-        X_h_test, X_c_test, X_hc_test, Y_test = collect_probe_dataset(test_loader, is_train=False)
+        logger.info("Collecting AR-AR probe dataset...")
+        X_h_train_ar, X_c_train_ar, X_hc_train_ar, Y_train_ar = collect_probe_dataset(train_loader, update_mode="autoregressive")
+        X_h_test_ar, X_c_test_ar, X_hc_test_ar, Y_test_ar = collect_probe_dataset(test_loader, update_mode="autoregressive")
+        
+        logger.info("Collecting TF-TF probe dataset...")
+        X_h_train_tf, X_c_train_tf, X_hc_train_tf, Y_train_tf = collect_probe_dataset(train_loader, update_mode="teacher_forced")
+        X_h_test_tf, X_c_test_tf, X_hc_test_tf, Y_test_tf = collect_probe_dataset(test_loader, update_mode="teacher_forced")
 
         def train_and_eval_probe(X_train, Y_train, X_test, Y_test, input_dim):
-            probe = nn.Sequential(nn.Linear(input_dim, 32), nn.ReLU(), nn.Linear(32, 1)).to(device)
-            opt = torch.optim.Adam(probe.parameters(), lr=0.01)
-            crit = nn.BCEWithLogitsLoss()
+            num_pos = Y_train.sum().item()
+            num_neg = len(Y_train) - num_pos
+            pos_weight_val = num_neg / max(1.0, num_pos)
+            pos_weight = torch.tensor([pos_weight_val], device=device)
             
-            dataset = TensorDataset(X_train, Y_train)
-            loader = DataLoader(dataset, batch_size=256, shuffle=True)
+            metrics_acc, metrics_bal, metrics_pr_auc = [], [], []
             
-            for ep in range(10):
-                probe.train()
-                for bx, by in loader:
-                    opt.zero_grad()
-                    loss = crit(probe(bx), by)
-                    loss.backward()
-                    opt.step()
+            for p_seed in PROBE_SEEDS:
+                set_seed(p_seed)
+                probe = nn.Sequential(nn.Linear(input_dim, 32), nn.ReLU(), nn.Linear(32, 1)).to(device)
+                opt = torch.optim.Adam(probe.parameters(), lr=0.01)
+                crit = nn.BCEWithLogitsLoss(pos_weight=pos_weight)
+                
+                dataset = TensorDataset(X_train, Y_train)
+                loader = DataLoader(dataset, batch_size=256, shuffle=True)
+                
+                for ep in range(10):
+                    probe.train()
+                    for bx, by in loader:
+                        opt.zero_grad()
+                        loss = crit(probe(bx), by)
+                        loss.backward()
+                        opt.step()
+                        
+                probe.eval()
+                with torch.no_grad():
+                    logits = probe(X_test)
+                    probs = torch.sigmoid(logits).cpu().numpy()
+                    preds = (probs > 0.5).astype(float)
+                    y_true = Y_test.cpu().numpy()
                     
-            probe.eval()
-            with torch.no_grad():
-                preds = (torch.sigmoid(probe(X_test)) > 0.5).float()
-                acc = (preds == Y_test).float().mean().item()
-            return acc
+                    acc = accuracy_score(y_true, preds)
+                    bal_acc = balanced_accuracy_score(y_true, preds)
+                    pr_auc = average_precision_score(y_true, probs)
+                    
+                    metrics_acc.append(acc)
+                    metrics_bal.append(bal_acc)
+                    metrics_pr_auc.append(pr_auc)
+                    
+            return np.mean(metrics_acc), np.mean(metrics_bal), np.mean(metrics_pr_auc)
 
-        acc_h = train_and_eval_probe(X_h_train, Y_train, X_h_test, Y_test, 64)
-        acc_c = train_and_eval_probe(X_c_train, Y_train, X_c_test, Y_test, 64)
-        acc_hc = train_and_eval_probe(X_hc_train, Y_train, X_hc_test, Y_test, 128)
-        acc_false = (torch.zeros_like(Y_test) == Y_test).float().mean().item()
+        # Baseline: always false (evaluating on AR test set)
+        y_true_ar = Y_test_ar.cpu().numpy()
+        preds_false = np.zeros_like(y_true_ar)
+        acc_false = accuracy_score(y_true_ar, preds_false)
+        bal_acc_false = balanced_accuracy_score(y_true_ar, preds_false)
+        pr_auc_false = average_precision_score(y_true_ar, preds_false)
+
+        logger.info("Training AR-AR Probes...")
+        acc_h_ar, bal_h_ar, pr_h_ar = train_and_eval_probe(X_h_train_ar, Y_train_ar, X_h_test_ar, Y_test_ar, 64)
+        acc_c_ar, bal_c_ar, pr_c_ar = train_and_eval_probe(X_c_train_ar, Y_train_ar, X_c_test_ar, Y_test_ar, 64)
+        acc_hc_ar, bal_hc_ar, pr_hc_ar = train_and_eval_probe(X_hc_train_ar, Y_train_ar, X_hc_test_ar, Y_test_ar, 128)
+        
+        logger.info("Training TF-TF Probes...")
+        acc_hc_tf, bal_hc_tf, pr_hc_tf = train_and_eval_probe(X_hc_train_tf, Y_train_tf, X_hc_test_tf, Y_test_tf, 128)
+        
+        logger.info("Training TF-AR Probes (Diagnostic Distribution Shift)...")
+        acc_hc_tf_ar, bal_hc_tf_ar, pr_hc_tf_ar = train_and_eval_probe(X_hc_train_tf, Y_train_tf, X_hc_test_ar, Y_test_ar, 128)
         
         diag4_results.append({
             'seed': seed,
-            'baseline_always_false': acc_false,
-            'probe_hidden_only': acc_h,
-            'probe_candidate_only': acc_c,
-            'probe_hidden_and_candidate': acc_hc
+            'baseline_always_false_pr_auc': pr_auc_false,
+            'probe_hidden_only_pr_auc': pr_h_ar,
+            'probe_candidate_only_pr_auc': pr_c_ar,
+            'probe_hidden_and_candidate_pr_auc': pr_hc_ar,
+            'probe_tf_tf_pr_auc': pr_hc_tf,
+            'probe_tf_ar_pr_auc': pr_hc_tf_ar,
+            
+            'baseline_always_false_bal_acc': bal_acc_false,
+            'probe_hidden_and_candidate_bal_acc': bal_hc_ar,
+            'probe_candidate_only_bal_acc': bal_c_ar
         })
 
-    # Save DataFrames
+    pd.DataFrame(validation_records).to_csv(out_dir / "retraining_validation.csv", index=False)
     pd.DataFrame(diag1_records).to_csv(out_dir / "hidden_state_movement_by_seed.csv", index=False)
     
     d1_df = pd.DataFrame(diag1_records)
@@ -440,14 +581,24 @@ def main():
     d1_summary.to_csv(out_dir / "hidden_state_movement_summary.csv", index=False)
     
     pd.DataFrame(diag2_records).to_csv(out_dir / "prediction_equivalence_by_seed.csv", index=False)
+    pd.DataFrame(diag2_quote_records).to_csv(out_dir / "prediction_equivalence_quote_level.csv", index=False)
     pd.DataFrame(diag3_records).to_csv(out_dir / "scorer_hidden_weight_usage.csv", index=False)
     pd.DataFrame(diag4_results).to_csv(out_dir / "previous_speaker_probe.csv", index=False)
     
     d5_df = pd.DataFrame(diag5_records)
-    d5_summary = d5_df.groupby('seed').mean().reset_index().drop(columns=['quote_id'])
+    d5_summary = (
+        d5_df.groupby("seed", as_index=False)
+        .agg(
+            mean_update_gate=("update_gate_mean", "mean"),
+            std_update_gate=("update_gate_mean", "std"),
+            mean_reset_gate=("reset_gate_mean", "mean"),
+            std_reset_gate=("reset_gate_mean", "std"),
+            percent_update_gate_lt_0_1=("update_gate_lt_0_1", "mean"),
+            percent_update_gate_gt_0_9=("update_gate_gt_0_9", "mean"),
+        )
+    )
     d5_summary.to_csv(out_dir / "gru_gate_statistics.csv", index=False)
     
-    # Generate Final Report
     report = []
     report.append("# EXP025C GRU Memory Utilization Audit\n")
     report.append("> EXP025C retrains the EXP025 GRU configuration because original checkpoints were unavailable. Therefore, EXP025C diagnoses the same architecture and training protocol, not the exact original trained parameter instances.\n")
@@ -456,36 +607,27 @@ def main():
     
     report.append("## Diagnostic 2: Prediction Equivalence")
     report.append("> This explains the behavior of the EXP025 architecture under the same training protocol.\n")
-    report.append(pd.DataFrame(diag2_records).groupby('comparison_mode')[['top1_agreement_percent', 'both_correct']].mean().reset_index().to_markdown(index=False) + "\n")
+    report.append(pd.DataFrame(diag2_records).groupby('comparison_mode')[['top1_agreement_percent', 'mean_abs_max_prob_difference']].mean().reset_index().to_markdown(index=False) + "\n")
     
     report.append("## Diagnostic 3: Scorer Hidden-State Weight Usage")
     report.append(pd.DataFrame(diag3_records).to_markdown(index=False) + "\n")
     
     report.append("## Diagnostic 4: Previous-Speaker Probe")
+    report.append("*Note: A hidden-only probe is structurally limited because all candidates receive the identical hidden state, yet only one is the true previous speaker. Meaningful comparisons examine whether hidden+candidate outperforms candidate-only.*")
     report.append(pd.DataFrame(diag4_results).to_markdown(index=False) + "\n")
     
     report.append("## Diagnostic 5: Gate Statistics")
     report.append(d5_summary.to_markdown(index=False) + "\n")
     
-    report.append("## Conclusions\n")
+    report.append("## Evidence Summary\n")
+    report.append("| Dimension | Observation |\n|---|---|")
+    report.append("| **Hidden-state dynamics** | *(Static / Low Movement / Substantial Movement)* |")
+    report.append("| **Prediction sensitivity** | *(Negligible / Small / Substantial)* |")
+    report.append("| **Probe increment over candidate-only** | *(None / Small / Substantial)* |")
+    report.append("| **Scorer integration** | *(No evidence / Limited evidence / Evidence present)* |\n")
     
-    # Analyze conclusions
-    d1_mean_cos = d1_summary['mean_cos_h_t_h_prev'].mean()
-    d2_top1_reset = pd.DataFrame(diag2_records).query("comparison_mode == 'reset_hidden_each_quote'")['top1_agreement_percent'].mean()
-    d3_ratio = pd.DataFrame(diag3_records)['hidden_to_candidate_norm_ratio'].mean()
-    d4 = pd.DataFrame(diag4_results).mean()
-    
-    report.append("EXP025C does not attempt to improve the GRU.")
-    report.append("It only explains why the EXP025 GRU failed to provide robust memory.\n")
-    
-    if d1_mean_cos > 0.99:
-        report.append("- **Conclusion**: The hidden state does not move meaningfully over time. It collapsed to a static representation.")
-    elif d2_top1_reset > 0.99 or d3_ratio < 0.1:
-        report.append("- **Conclusion**: The hidden state moves, but the scorer largely ignores it.")
-    elif d4['probe_hidden_and_candidate'] <= d4['probe_candidate_only'] + 0.01:
-        report.append("- **Conclusion**: The hidden state moves and is used, but it does not encode useful speaker-history information (hidden+candidate probe performs no better than candidate-only).")
-    else:
-        report.append("- **Conclusion**: The hidden state encodes speaker-history information, but the scorer fails to integrate it effectively for attribution.")
+    report.append("## Interpretation\n")
+    report.append("EXP025C does not attempt to improve the GRU. It only provides a diagnostic baseline on why the EXP025 GRU failed to provide robust memory. Please fill out the evidence summary above to arrive at a final interpretation.\n")
 
     with open(out_dir / "EXP025C_MEMORY_UTILIZATION_REPORT.md", "w") as f:
         f.write("\n".join(report))
